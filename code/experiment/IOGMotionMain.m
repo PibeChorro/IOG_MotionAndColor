@@ -12,11 +12,15 @@ design = getInstructions();
 design.stimulusPresentationTime = 90 - ptb.ifi/2;
 design.ITI                      = 10 - ptb.ifi/2;
 design.stimSizeInDegrees        = 1.7;
+design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
 design.whiteBackgroundInDegrees = 2.5;
 
 design.stimSizeInPixelsX        = round(ptb.PixPerDegWidth*design.stimSizeInDegrees);
 design.stimSizeInPixelsY        = round(ptb.PixPerDegHeight*design.stimSizeInDegrees);
+
+design.fixCrossInPixelsX        = round(ptb.PixPerDegWidth*design.fixCrossInDegrees);
+design.fixCrossInPixelsY        = round(ptb.PixPerDegHeight*design.fixCrossInDegrees);
 
 design.mondreanInPixelsX        = int16(round(ptb.PixPerDegWidth*design.mondreanInDegrees));
 design.mondreanInPixelsY        = int16(round(ptb.PixPerDegHeight*design.mondreanInDegrees));
@@ -32,6 +36,12 @@ design.destinationRect = [...
     ptb.screenYpixels/2-design.stimSizeInPixelsY/2 ...
     ptb.screenXpixels/2+design.stimSizeInPixelsX/2 ...
     ptb.screenYpixels/2+design.stimSizeInPixelsY/2];
+
+% fixation cross
+design.fixCrossCoords = [
+    -design.fixCrossInPixelsX/2 design.fixCrossInPixelsX/2 0 0; ...
+    0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
+    ];
 
 alignFusion(ptb, design);
 
@@ -75,6 +85,9 @@ while true
     tex2 = Screen('MakeTexture', ptb.window, y2);     % create texture for stimulus
     Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
     
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+    ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    
     % Select image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 1);
     Screen('DrawTexture', ptb.window, backGroundTexture);
@@ -85,6 +98,9 @@ while true
     
     tex2Other = Screen('MakeTexture', ptb.window, y2Other);     % create texture for stimulus
     Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
+    
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+    ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
     
     Screen('DrawingFinished', ptb.window);
     Screen('Flip', ptb.window);
