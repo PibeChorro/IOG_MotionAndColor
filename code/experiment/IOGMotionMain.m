@@ -57,19 +57,24 @@ while true
     y = sin(x*0.1);
     y = ((y+1)/2);
     
-    y(:,:,2) = zeros(size(x));
-    y(:,:,3) = zeros(size(x));
+%     y(:,:,2) = zeros(size(x));
+%     y(:,:,3) = zeros(size(x));
     y2 = zeros(size(y));
-    y2(:,:,2) = y(:,:,1)';
-
+    y2(:,:,1) = y(:,:,1)';
+% 
     yOther = y;
     y2Other = y2;
-    y(:,:,4) = alphaMask1;
-    y2(:,:,4) = alphaMask2;
-
-    yOther(:,:,4) = alphaMask2;
-    y2Other(:,:,4) = alphaMask1;
+%     y(:,:,4) = alphaMask1;
+%     y2(:,:,4) = alphaMask2;
+% 
+%     yOther(:,:,4) = alphaMask2;
+%     y2Other(:,:,4) = alphaMask1;
     
+    y(:,:,2) = alphaMask1;
+    y2(:,:,2) = alphaMask2;
+
+    yOther(:,:,2) = alphaMask2;
+    y2Other(:,:,2) = alphaMask1;
     
     design.whiteBackground = ones(size(x));
     whiteBackgroundTex = Screen('MakeTexture', ptb.window, design.whiteBackground);
