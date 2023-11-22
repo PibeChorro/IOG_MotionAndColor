@@ -8,6 +8,13 @@ ptb = PTBSettingsIOGMotion(setUp);
 
 %% design related
 design = getInstructions();
+% the scenario determines the type(s) of low level cues for interocular
+% grouping:
+% 1: only orientation - no motion, no color
+% 2: orientation and color - no motion
+% 3: orientation and motion - no color
+% 4: orientation, color and motion
+design.scenario = 4; 
 
 design.stimulusPresentationTime = 90 - ptb.ifi/2;
 design.ITI                      = 10 - ptb.ifi/2;
@@ -50,31 +57,79 @@ x = repmat(1:314, 314,1);
 alphaMask1  = zeros(size(x));
 alphaMask2 = alphaMask1;
 alphaMask1(:,1:157) = 1;
-alphaMask2(:,157:end) = 1;
+alphaMask2(:,158:end) = 1;
 
 while true
-    x = x+1;
-    y = sin(x*0.1);
-    y = ((y+1)/2);
-    
-%     y(:,:,2) = zeros(size(x));
-%     y(:,:,3) = zeros(size(x));
-    y2 = zeros(size(y));
-    y2(:,:,1) = y(:,:,1)';
-% 
-    yOther = y;
-    y2Other = y2;
-%     y(:,:,4) = alphaMask1;
-%     y2(:,:,4) = alphaMask2;
-% 
-%     yOther(:,:,4) = alphaMask2;
-%     y2Other(:,:,4) = alphaMask1;
-    
-    y(:,:,2) = alphaMask1;
-    y2(:,:,2) = alphaMask2;
+    switch design.scenario
+        case 1 % 1: only orientation - no motion, no color
+            y = sin(x*0.1);
+            y = ((y+1)/2);
 
-    yOther(:,:,2) = alphaMask2;
-    y2Other(:,:,2) = alphaMask1;
+            y2 = zeros(size(y));
+            y2(:,:,1) = y(:,:,1)';
+            
+            yOther = y;
+            y2Other = y2;
+
+            y(:,:,2) = alphaMask1;
+            y2(:,:,2) = alphaMask2;
+        
+            yOther(:,:,2) = alphaMask2;
+            y2Other(:,:,2) = alphaMask1;
+        case 2 % 2: orientation and color - no motion
+            y = sin(x*0.1);
+            y = ((y+1)/2);
+
+            y(:,:,2) = zeros(size(x));
+            y(:,:,3) = zeros(size(x));
+            y2 = zeros(size(y));
+            y2(:,:,2) = y(:,:,1)';
+            
+            yOther = y;
+            y2Other = y2;
+            y(:,:,4) = alphaMask1;
+            y2(:,:,4) = alphaMask2;
+
+            yOther(:,:,4) = alphaMask2;
+            y2Other(:,:,4) = alphaMask1;
+        case 3 % 3: orientation and motion - no color
+            x = x+1;
+            y = sin(x*0.1);
+            y = ((y+1)/2);
+
+            y2 = zeros(size(y));
+            y2(:,:,1) = y(:,:,1)';
+            
+            yOther = y;
+            y2Other = y2;
+
+            y(:,:,2) = alphaMask1;
+            y2(:,:,2) = alphaMask2;
+        
+            yOther(:,:,2) = alphaMask2;
+            y2Other(:,:,2) = alphaMask1;
+            WaitSecs(0.01);
+        case 4 % 4: orientation, color and motion
+            x = x+1;
+            y = sin(x*0.1);
+            y = ((y+1)/2);
+
+            y(:,:,2) = zeros(size(x));
+            y(:,:,3) = zeros(size(x));
+            y2 = zeros(size(y));
+            y2(:,:,2) = y(:,:,1)';
+        % 
+            yOther = y;
+            y2Other = y2;
+            y(:,:,4) = alphaMask1;
+            y2(:,:,4) = alphaMask2;
+
+            yOther(:,:,4) = alphaMask2;
+            y2Other(:,:,4) = alphaMask1;
+            WaitSecs(0.01);
+        otherwise
+            error('You selected an undefined scenario!');
+    end
     
     design.whiteBackground = ones(size(x));
     whiteBackgroundTex = Screen('MakeTexture', ptb.window, design.whiteBackground);
@@ -115,7 +170,6 @@ while true
     Screen('Close', tex1Other);
     Screen('Close', tex2Other);
     
-%     WaitSecs(0.05);
 end
 
 end
