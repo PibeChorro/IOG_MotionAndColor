@@ -1,0 +1,47 @@
+function [horizontalOffset, verticalOffset] = openExperimentWindow(ptb, ~)
+
+    horizontalOffset = 0;
+    verticalOffset = 0;
+    change = 0.003;
+
+    while true
+        % Clear the screen
+        Screen('FillRect', ptb.window);
+
+        % Display text at the specified position (or center if not provided)
+        DrawFormattedText(ptb.window,['Hello! You will now see instructions on the screen, and you should ' ...
+            'adjust the position using the arrow keys. Press SPACE when ready.'], 'center', 'center', ptb.xCenter, ptb.yCenter, 10);
+
+        % Tell PTB drawing is finished for this frame:
+        Screen('DrawingFinished', ptb.window);
+
+        % Flip the screen
+        Screen('Flip', ptb.window);
+
+        % Check for key presses
+        [KeyIsDown, ~, keyCode, ~] = KbCheck;
+
+        if KeyIsDown
+            if find(keyCode) == ptb.Keys.left
+                horizontalOffset = horizontalOffset - change;
+                disp('=> pressed LEFT')
+            elseif find(keyCode) == ptb.Keys.right
+                horizontalOffset = horizontalOffset + change;
+                disp('=> pressed RIGHT')
+            elseif find(keyCode) == ptb.Keys.up
+                verticalOffset = verticalOffset + change;
+                disp('=> pressed UP')
+            elseif find(keyCode) == ptb.Keys.down
+                verticalOffset = verticalOffset - change;
+                disp('=> pressed DOWN')
+            elseif find(keyCode) == ptb.Keys.accept
+                disp('=> pressed SPACE')
+                break
+            else
+                disp(['Pressed ' num2str(KbName(find(keyCode)))])
+            end
+
+            fprintf('x-offset: %100.2f, y-offset:%100.2f \n', horizontalOffset, verticalOffset);
+        end
+    end
+end

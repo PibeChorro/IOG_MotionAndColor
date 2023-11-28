@@ -50,6 +50,7 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
+openExperimentWindow(ptb);
 alignFusion(ptb, design);
 
 x = repmat(1:314, 314,1);
@@ -151,7 +152,7 @@ while true
     % Select image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 1);
     Screen('DrawTexture', ptb.window, backGroundTexture);
-%     Screen('DrawTexture', ptb.window, whiteBackgroundTex);
+    % Screen('DrawTexture', ptb.window, whiteBackgroundTex);
     
     tex1Other = Screen('MakeTexture', ptb.window, yOther);     % create texture for stimulus
     Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
