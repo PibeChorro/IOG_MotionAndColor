@@ -1,10 +1,15 @@
 function openExperimentWindow(ptb)
     try
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 4ece66935a3c404e16dbc39fdba5faf4f9f4c306
         getScreens = Screen('Screens');
         chosenScreen = max(getScreens);
 
         white = WhiteIndex(chosenScreen);
         grey = white / 2;
+<<<<<<< HEAD
         Screen('Preference', 'SkipSyncTests', 1); % Skip synchronization tests if needed
 
         % Open Window
@@ -12,6 +17,14 @@ function openExperimentWindow(ptb)
 
        centerX = (rect(3)-rect(1))/2;
        centerY = (rect(4)-rect(2))/2;
+=======
+        rect = [0 0 1920 1200];
+
+        % Open Window
+        [ptb.window, scr_rect] = PsychImaging('OpenWindow', chosenScreen, grey, []);
+
+        [centerX, centerY] = RectCenter(scr_rect);
+>>>>>>> 4ece66935a3c404e16dbc39fdba5faf4f9f4c306
 
         Screen('FillRect', ptb.window, [0.5 0.5 0.5], rect);
         Screen('TextSize', ptb.window, 40);
@@ -23,7 +36,11 @@ function openExperimentWindow(ptb)
         Textcolor = [0 0 0];
 
         % Display text at the center of the screen
+<<<<<<< HEAD
         DrawFormattedText(ptb.window, TextDisplay, centerX - 70, centerY, Textcolor);
+=======
+        DrawFormattedText(ptb.window, TextDisplay, centerX, centerY, Textcolor);
+>>>>>>> 4ece66935a3c404e16dbc39fdba5faf4f9f4c306
 
         % Tell PTB drawing is finished for this frame:
         Screen('DrawingFinished', ptb.window);
