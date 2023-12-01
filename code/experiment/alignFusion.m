@@ -7,10 +7,15 @@ function [horizontalOffset,verticalOffset] = alignFusion(ptb, design)
     verticalOffset = 0;
     change = 0.003;
     framesize = max([ptb.screenXpixels, ptb.screenYpixels])/3; 
-  
+
+    % varialbe that if true calls SetStereoSideBySideParameters
+    updateStereo = false;
     while true
-        SetStereoSideBySideParameters(ptb.window, [0+horizontalOffset, 0+verticalOffset], ...
-            [1, 1], [1-horizontalOffset, 0-verticalOffset], [1, 1]);
+        if updateStereo
+            SetStereoSideBySideParameters(ptb.window, [0+horizontalOffset, 0+verticalOffset], ...
+                [1, 1], [1-horizontalOffset, 0-verticalOffset], [1, 1]);
+                updateStereo = false;
+        end
 
         % Select   left-eye image buffer for drawing:
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -40,15 +45,19 @@ function [horizontalOffset,verticalOffset] = alignFusion(ptb, design)
             if find(keyCode)==ptb.Keys.left
                 horizontalOffset = horizontalOffset-change;
                 disp('=>pressed LEFT')
+                updateStereo = true;
             elseif find(keyCode)==ptb.Keys.right
                 horizontalOffset = horizontalOffset+change;
                 disp('=>pressed RIGHT')
+                updateStereo = true;
             elseif find(keyCode)==ptb.Keys.up
                 verticalOffset = verticalOffset+change;
                 disp('=>pressed UP')
+                updateStereo = true;
             elseif find(keyCode)==ptb.Keys.down
                 verticalOffset = verticalOffset-change;
                 disp('=>pressed DOWN')
+                updateStereo = true;
             elseif find(keyCode)==ptb.Keys.accept
                 disp('=>pressed SPACE')
                 break
