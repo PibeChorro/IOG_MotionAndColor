@@ -1,14 +1,13 @@
 function ptb = PTBSettingsIOGMotion(setUp)
 if nargin < 1 || isempty(setUp)
-    setUp = 'CIN-experimentroom';
+    setUp = 'CIN-Mac-Setup';
 end
-% Disable SyncTests -----> REMOVE LATER
-Screen('Preference', 'SkipSyncTests', 1);
 % Decide which set up to use
 ptb.SetUp = setUp;
 
 % Turn initial start screen from white to black
 Screen('Preference', 'VisualDebugLevel', 1);
+Screen('Preference', 'SkipSyncTests', 1);
 
 % Here we call some default settings for setting up Psychtoolbox
 PsychDefaultSetup(2);
@@ -81,26 +80,20 @@ switch ptb.SetUp
         ptb.Keyboard1  = keyboardIndicesExp(1);
         fprintf('\n=> Experimentators keyboard Nr.: %u  %s \n',ptb.Keyboard1, productNamesExp{1});
 
-    case 'Sarah Laptop'
-        % Define key codes
-        ptb.Keys.left   = KbName('LeftArrow');
-        ptb.Keys.right  = KbName('RightArrow');
-        ptb.Keys.up     = KbName('UpArrow');
-        ptb.Keys.down   = KbName('DownArrow');
-        ptb.Keys.accept = KbName('Space');
-        
-        % Set values for the keys in ptb.KeyList2
-        ptb.KeyList2(ptb.Keys.left)   = double(1);
-        ptb.KeyList2(ptb.Keys.right)  = double(1);
-        ptb.KeyList2(ptb.Keys.up)     = double(1);
-        ptb.KeyList2(ptb.Keys.down)   = double(1);
-        ptb.KeyList2(ptb.Keys.accept) = double(1);
-        
+    case 'CIN-Mac-Setup'
+        % subject keys
+        ptb.Keys.left   = KbName('LeftArrow');  ptb.KeyList2(ptb.Keys.left)  = double(1);
+        ptb.Keys.right  = KbName('RightArrow'); ptb.KeyList2(ptb.Keys.right) = double(1);
+        ptb.Keys.up     = KbName('UpArrow');    ptb.KeyList2(ptb.Keys.left)  = double(1);
+        ptb.Keys.down   = KbName('DownArrow');  ptb.KeyList2(ptb.Keys.right) = double(1);
+        ptb.Keys.accept = KbName('Space');      ptb.KeyList2(ptb.Keys.accept)= double(1);
         % Get Keyboard indices
-        [keyboardIndices, productNames, ~] = GetKeyboardIndices('Keyboard');
+        [keyboardIndices, productNames, ~] = GetKeyboardIndices('Apple Keyboard');
         ptb.Keyboard1 = keyboardIndices(1);
         ptb.Keyboard2 = keyboardIndices(1);
-        fprintf('\n=> Subjects keyboard Nr.: %u  %s \n', ptb.Keyboard1, productNames{1});
+        fprintf('\n=> Subjects keyboard Nr.: %u  %s \n',ptb.Keyboard2, productNames{1});
+        fprintf('\n=> Experimenter keyboard Nr.: %u  %s \n',ptb.Keyboard2, productNames{1});
+
     otherwise
         error('No proper Set up was selected');
 end
@@ -116,7 +109,6 @@ KbQueueStart(ptb.Keyboard1);
 % create & start KbQueue for the second Keyboard.
 KbQueueCreate(ptb.Keyboard2, ptb.KeyList2);
 KbQueueStart(ptb.Keyboard2);
-
 %........................... END KEYS ....................................%
 
 %.......................... Window Configuration .........................%
@@ -174,16 +166,14 @@ switch ptb.SetUp
         ptb.widthMonitor    = 399;  % monitor width measured by hand - REMEASURE
         ptb.heightMonitor   = 224;  % monitor height measured by hand - REMEASURE
         ptb.lineWidthInPix  = 4;    % line width in pixels for fixation cross
-    case 'Sarah Laptop'
-        [ptb.window, ptb.windowRect] = PsychImaging('OpenWindow', ptb.screenNumber, ptb.BackgroundColor, [], [],[],4);
-        
-        ptb.FontSize = Screen('TextSize', ptb.window, 40);
+    case 'CIN-Mac-Setup'
+        [ptb.window, ptb.windowRect] = PsychImaging('OpenWindow', ptb.screenNumber, ptb.BackgroundColor, [0 0 800 600], [],[],4); 
         % Real world variable
-        ptb.DistToMonitor   = 500;  % Distance to monitor in mm - to be measured
-        ptb.widthMonitor    = 399;  % monitor width - to be measured
-        ptb.heightMonitor   = 224;  % measure height - to be measured
-        ptb.lineWidthInPix  = 4;    % line width in pixels for fixation cross
-
+        ptb.FontSize = Screen('TextSize', ptb.window, 15);
+        ptb.DistToMonitor   = 570;  % Distance to monitor in mm (measured by hand) - REMEASURE
+        ptb.widthMonitor    = 520;  % monitor width measured by hand - REMEASURE
+        ptb.heightMonitor   = 325;  % monitor height measured by hand - REMEASURE
+        ptb.lineWidthInPix  = 4;    % line width in pixels for fixation cross      
     otherwise
         error('No proper Set up was selected');
 end

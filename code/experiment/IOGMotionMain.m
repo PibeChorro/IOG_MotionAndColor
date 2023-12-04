@@ -1,13 +1,18 @@
 function IOGMotionMain(setUp)
 
 if nargin < 1
-    setUp = 'CIN-experimentroom';
+    setUp = 'CIN-Mac-Setup' ; 
 end
 
-ptb = PTBSettingsIOGMotion(setUp);
+try
+    ptb = PTBSettingsIOGMotion(setUp);
+catch PTBERROR   
+    sca;
+     rethrow(PTBERROR);
+end
 
 %% design related
-design = getInstructions();
+design = getInstructions();    
 % the scenario determines the type(s) of low level cues for interocular
 % grouping:
 % 1: only orientation - no motion, no color
@@ -50,8 +55,19 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
-openExperimentWindow(ptb);
-alignFusion(ptb, design);
+try
+    openExperimentWindow(ptb);
+catch OEWERROR
+    sca;
+    rethrow(OEWERROR);
+end
+
+try
+    alignFusion(ptb, design);
+catch alignERROR
+    sca
+    rethrow(alignERROR); 
+end
 
 x = repmat(1:314, 314,1);
 
@@ -60,80 +76,93 @@ alphaMask2 = alphaMask1;
 alphaMask1(:,1:157) = 1;
 alphaMask2(:,158:end) = 1;
 
-while true
-    switch design.scenario
-        case 1 % 1: only orientation - no motion, no color
-            y = sin(x*0.1);
-            y = ((y+1)/2);
+scenarios = 1:4;
+shuffledScenarios = scenarios(randperm(length(scenarios)));
 
-            y2 = zeros(size(y));
-            y2(:,:,1) = y(:,:,1)';
-            
-            yOther = y;
-            y2Other = y2;
+group1Order = shuffledScenarios;
+group2Order = fliplr(shuffledScenarios);
 
-            y(:,:,2) = alphaMask1;
-            y2(:,:,2) = alphaMask2;
-        
-            yOther(:,:,2) = alphaMask2;
-            y2Other(:,:,2) = alphaMask1;
-        case 2 % 2: orientation and color - no motion
-            y = sin(x*0.1);
-            y = ((y+1)/2);
+for i = 1:length(shuffledScenarios)
+    currentScenario = shuffledScenarios(i);
+    design.scenario = currentScenario;
 
-            y(:,:,2) = zeros(size(x));
-            y(:,:,3) = zeros(size(x));
-            y2 = zeros(size(y));
-            y2(:,:,2) = y(:,:,1)';
-            
-            yOther = y;
-            y2Other = y2;
-            y(:,:,4) = alphaMask1;
-            y2(:,:,4) = alphaMask2;
-
-            yOther(:,:,4) = alphaMask2;
-            y2Other(:,:,4) = alphaMask1;
-        case 3 % 3: orientation and motion - no color
-            x = x+1;
-            y = sin(x*0.1);
-            y = ((y+1)/2);
-
-            y2 = zeros(size(y));
-            y2(:,:,1) = y(:,:,1)';
-            
-            yOther = y;
-            y2Other = y2;
-
-            y(:,:,2) = alphaMask1;
-            y2(:,:,2) = alphaMask2;
-        
-            yOther(:,:,2) = alphaMask2;
-            y2Other(:,:,2) = alphaMask1;
-            WaitSecs(0.01);
-        case 4 % 4: orientation, color and motion
-            x = x+1;
-            y = sin(x*0.1);
-            y = ((y+1)/2);
-
-            y(:,:,2) = zeros(size(x));
-            y(:,:,3) = zeros(size(x));
-            y2 = zeros(size(y));
-            y2(:,:,2) = y(:,:,1)';
-        % 
-            yOther = y;
-            y2Other = y2;
-            y(:,:,4) = alphaMask1;
-            y2(:,:,4) = alphaMask2;
-
-            yOther(:,:,4) = alphaMask2;
-            y2Other(:,:,4) = alphaMask1;
-            WaitSecs(0.01);
-        otherwise
-            error('You selected an undefined scenario!');
-    end
+    while true
+        switch design.scenario
+            case 1 % 1: only orientation - no motion, no color
+                y = sin(x*0.3);
+%               y = ((y+1)/2);
+                y = y + 3;
     
-    design.whiteBackground = ones(size(x));
-    whiteBackgroundTex = Screen('MakeTexture', ptb.window, design.whiteBackground);
+                y2 = zeros(size(y));
+                y2(:,:,1) = y(:,:,1)';
+                
+                yOther = y;
+                y2Other = y2;
+    
+                y(:,:,2) = alphaMask1;
+                y2(:,:,2) = alphaMask2;
+            
+                yOther(:,:,2) = alphaMask2;
+                y2Other(:,:,2) = alphaMask1;
+            case 2 % 2: orientation and color - no motion
+                y = sin(x*0.3);
+%               y = ((y+1)/2);
+                y = y + 3;
+    
+                y(:,:,2) = zeros(size(x));
+                y(:,:,3) = zeros(size(x));
+                y2 = zeros(size(y));
+                y2(:,:,2) = y(:,:,1)';
+                
+                yOther = y;
+                y2Other = y2;
+                y(:,:,4) = alphaMask1;
+                y2(:,:,4) = alphaMask2;
+    
+                yOther(:,:,4) = alphaMask2;
+                y2Other(:,:,4) = alphaMask1;
+            case 3 % 3: orientation and motion - no color
+                x = x+1; % motion of the gratings to the right
+                x = x-1; % motion of the gratings to the left
+                y = sin(x*0.3);
+%               y = ((y+1)/2);
+                y = y + 3;
+    
+                y2 = zeros(size(y));
+                y2(:,:,1) = y(:,:,1)';
+                
+                yOther = y;
+                y2Other = y2;
+    
+                y(:,:,2) = alphaMask1;
+                y2(:,:,2) = alphaMask2;
+            
+                yOther(:,:,2) = alphaMask2;
+                y2Other(:,:,2) = alphaMask1;
+                WaitSecs(0.01);
+            case 4 % 4: orientation, color and motion
+                x = x+1; % motion 
+                x = x-1;
+                y = sin(x*0.3); % orientation
+%               y = ((y+1)/2);
+                y = y + 3;
+    
+                y(:,:,2) = zeros(size(x));
+                y(:,:,3) = zeros(size(x));
+                y2 = zeros(size(y));   
+                y2(:,:,2) = y(:,:,1)';
+             
+                yOther = y;
+                y2Other = y2;
+                y(:,:,4) = alphaMask1;
+                y2(:,:,4) = alphaMask2;
+    
+                yOther(:,:,4) = alphaMask2;
+                y2Other(:,:,4) = alphaMask1;
+                WaitSecs(0.01);
+            otherwise
+                error('You selected an undefined scenario!');
+        end
 
     % Select image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -160,8 +189,7 @@ while true
     tex2Other = Screen('MakeTexture', ptb.window, y2Other);     % create texture for stimulus
     Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
     
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-    ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
     
     Screen('DrawingFinished', ptb.window);
     Screen('Flip', ptb.window);
@@ -170,7 +198,10 @@ while true
     Screen('Close', tex2);
     Screen('Close', tex1Other);
     Screen('Close', tex2Other);
-    
-end
 
-end
+    save('participant_scenario_order.mat', 'shuffledScenarios');
+    save('group1_participant_scenario_order.mat', 'group1Order');
+    save('group2_participant_scenario_order.mat', 'group2Order');
+
+    end 
+end 

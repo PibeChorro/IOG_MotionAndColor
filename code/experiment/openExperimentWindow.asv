@@ -1,47 +1,43 @@
-function [horizontalOffset, verticalOffset] = openExperimentWindow(ptb, ~)
+function openExperimentWindow(ptb)
 
-    horizontalOffset = 0;
-    verticalOffset = 0;
-    change = 0.003;
+instructionsArray = {
+    ['Hello, thank you for choosing to participate in this study involving interocular grouping\n By pressing any key button, you will be re-directed' ...
+    'to a series of instructions informing you about what you are required to do in this experiment'];
+    ['You will first have a fusion test, in which you will be presented with two rectangular frames which you should fuse together using the left or right' ...
+    'arrow. Once this is done, click space to continue'];
+    ['After the fusion test, you will have a task with four different conditions: ' ...
+    '1. Condition where you have only orientation differences between two different lines' ...
+    '2. Condition where you have both orientation and color be '];
+};
 
-    while true
-        % Clear the screen
-        Screen('FillRect', ptb.window);
+for i = 1:length(instructionsArray)
+    TextDisplay = instructionsArray{i};
 
-        % Display text at the specified position (or center if not provided)
-        DrawFormattedText(ptb.window,['Hello! You will now see instructions on the screen, and you should ' ...
-            'adjust the position using the arrow keys. Press SPACE when ready.'], 'center', 'center', ptb.xCenter, ptb.yCenter, 10);
-
-        % Tell PTB drawing is finished for this frame:
-        Screen('DrawingFinished', ptb.window);
-
-        % Flip the screen
-        Screen('Flip', ptb.window);
-
-        % Check for key presses
-        [KeyIsDown, ~, keyCode, ~] = KbCheck;
-
-        if KeyIsDown
-            if find(keyCode) == ptb.Keys.left
-                horizontalOffset = horizontalOffset - change;
-                disp('=> pressed LEFT')
-            elseif find(keyCode) == ptb.Keys.right
-                horizontalOffset = horizontalOffset + change;
-                disp('=> pressed RIGHT')
-            elseif find(keyCode) == ptb.Keys.up
-                verticalOffset = verticalOffset + change;
-                disp('=> pressed UP')
-            elseif find(keyCode) == ptb.Keys.down
-                verticalOffset = verticalOffset - change;
-                disp('=> pressed DOWN')
-            elseif find(keyCode) == ptb.Keys.accept
-                disp('=> pressed SPACE')
-                break
-            else
-                disp(['Pressed ' num2str(KbName(find(keyCode)))])
-            end
-
-            fprintf('x-offset: %100.2f, y-offset:%100.2f \n', horizontalOffset, verticalOffset);
-        end
-    end
+%   framesize = max([ptb.screenXpixels, ptb.screenYpixels])/3;
+    %         Screen('FillRect', ptb.window, [0.5 0.5 0.5], ptb.windowRect);
+    Screen('TextSize', ptb.window, 15);
+    %         Screen('TextFont', ptb.window, 'Times');
+    Screen('TextStyle', ptb.window, 0);
+    
+%     TextDisplay = ['Hello, thank you for choosing to participate in this study involving interocular grouping\n' ...
+%         'By pressing any key button, you will be directed to a series of instructions\n informing you about what you are required to do' ...
+%         ' in this experiment'];
+    
+    Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    
+    DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
+    
+    Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    
+    DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
+    
+    % Tell PTB drawing is finished for this frame:
+    Screen('DrawingFinished', ptb.window);
+    
+    Screen('Flip', ptb.window);
+    
+    % Wait for any key press
+    KbWait();
+    WaitSecs(0.5);
+end
 end
