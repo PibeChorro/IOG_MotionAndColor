@@ -1,11 +1,8 @@
 function IOGMotionMain(setUp)
 
 if nargin < 1
-<<<<<<< HEAD
     setUp = 'CIN-Mac-Setup' ; 
-=======
-    setUp = 'Sarah Laptop';
->>>>>>> 2225917dd2a91181d665ab2e3c704c1e34b618e4
+
 end
 
 try
@@ -93,108 +90,78 @@ for i = 1:length(shuffledScenarios)
     while true
         switch design.scenario
             case 1 % 1: only orientation - no motion, no color
-<<<<<<< HEAD
-                y = sin(x*0.3);
-%               y = ((y+1)/2);
-                y = y + 3;
-=======
-                y = sin(x*0.1);
-                y = ((y+1)/2);
->>>>>>> 2225917dd2a91181d665ab2e3c704c1e34b618e4
+                rightgratingfreq1 = sin(positionX*0.3); % creates a sine-wave grating of spatial frequency 0.3
+                scaledorientationgrating = ((rightgratingfreq1+1)/2); % normalizes value range from 0 to 1
     
-                y2 = zeros(size(y));
-                y2(:,:,1) = y(:,:,1)';
+                rightgratingfreq2 = zeros(size(scaledorientationgrating));
+                rightgratingfreq2(:,:,1) = scaledorientationgrating(:,:,1)';
                 
-                yOther = y;
-                y2Other = y2;
+                leftgratingfreq1 = scaledorientationgrating;
+                leftgratingfreq2(:,:,1) = scaledorientationgrating(:,:,1)';
     
-                y(:,:,2) = alphaMask1;
-                y2(:,:,2) = alphaMask2;
+                scaledorientationgrating(:,:,2)  = alphaMask1;
+                rightgratingfreq2(:,:,2) = alphaMask2;
             
-                yOther(:,:,2) = alphaMask2;
-                y2Other(:,:,2) = alphaMask1;
+                leftgratingfreq1(:,:,2) = alphaMask2;
+                leftgratingfreq2(:,:,2) = alphaMask1;
+
             case 2 % 2: orientation and color - no motion
-<<<<<<< HEAD
-                y = sin(x*0.3);
-%               y = ((y+1)/2);
-                y = y + 3;
-=======
-                y = sin(x*0.1);
-                y = ((y+1)/2);
->>>>>>> 2225917dd2a91181d665ab2e3c704c1e34b618e4
+                rightgratingfreq1 = sin(positionX*0.3);
+                scaledorientationgrating = ((rightgratingfreq1+1)/2);
     
-                y(:,:,2) = zeros(size(x));
-                y(:,:,3) = zeros(size(x));
-                y2 = zeros(size(y));
-                y2(:,:,2) = y(:,:,1)';
+                scaledorientationgrating(:,:,2) = zeros(size(positionX));
+                scaledorientationgrating(:,:,3) = zeros(size(positionX));
+                rightgratingfreq2 = zeros(size(scaledorientationgrating));
+                rightgratingfreq2(:,:,2) = scaledorientationgrating(:,:,1)';
                 
-                yOther = y;
-                y2Other = y2;
-                y(:,:,4) = alphaMask1;
-                y2(:,:,4) = alphaMask2;
+                leftgratingfreq1 = scaledorientationgrating;
+                leftgratingfreq2 = rightgratingfreq2;
+                scaledorientationgrating(:,:,4) = alphaMask1;
+                rightgratingfreq2(:,:,4) = alphaMask2;
     
-                yOther(:,:,4) = alphaMask2;
-                y2Other(:,:,4) = alphaMask1;
+                leftgratingfreq1(:,:,4) = alphaMask2;
+                leftgratingfreq2(:,:,4) = alphaMask1;
             case 3 % 3: orientation and motion - no color
-<<<<<<< HEAD
-                x = x+1; % motion of the gratings to the right
-                x = x-1; % motion of the gratings to the left
-                y = sin(x*0.3);
-%               y = ((y+1)/2);
-                y = y + 3;
-=======
-                x = x+1;
-                y = sin(x*0.1);
-                y = ((y+1)/2);
->>>>>>> 2225917dd2a91181d665ab2e3c704c1e34b618e4
+                positionX = positionX+1;
+                positionX = positionX-1;
+                rightgratingfreq1 = sin(positionX*0.3);
+                scaledorientationgrating = ((rightgratingfreq1+1)/2);
     
-                y2 = zeros(size(y));
-                y2(:,:,1) = y(:,:,1)';
+                rightgratingfreq2 = zeros(size(scaledorientationgrating));
+                rightgratingfreq2(:,:,1) = scaledorientationgrating(:,:,1)';
                 
-                yOther = y;
-                y2Other = y2;
+                leftgratingfreq1 = scaledorientationgrating;
+                leftgratingfreq2 = rightgratingfreq2;
     
-                y(:,:,2) = alphaMask1;
-                y2(:,:,2) = alphaMask2;
+                scaledorientationgrating(:,:,2) = alphaMask1;
+                rightgratingfreq2(:,:,2) = alphaMask2;
             
-                yOther(:,:,2) = alphaMask2;
-                y2Other(:,:,2) = alphaMask1;
+                leftgratingfreq1(:,:,2) = alphaMask2;
+                leftgratingfreq2(:,:,2) = alphaMask1;
                 WaitSecs(0.01);
             case 4 % 4: orientation, color and motion
-<<<<<<< HEAD
-                x = x+1; % motion 
-                x = x-1;
-                y = sin(x*0.3); % orientation
-%               y = ((y+1)/2);
-                y = y + 3;
+                positionX = positionX+1;
+                positionX = positionX-1;
+                rightgratingfreq1 = sin(positionX*0.3);
+                scaledorientationgrating = ((rightgratingfreq1+1)/2);
     
-                y(:,:,2) = zeros(size(x));
-                y(:,:,3) = zeros(size(x));
-                y2 = zeros(size(y));   
-                y2(:,:,2) = y(:,:,1)';
-             
-=======
-                x = x+1;
-                y = sin(x*0.1);
-                y = ((y+1)/2);
-    
-                y(:,:,2) = zeros(size(x));
-                y(:,:,3) = zeros(size(x));
-                y2 = zeros(size(y));
-                y2(:,:,2) = y(:,:,1)';
+                scaledorientationgrating(:,:,2) = zeros(size(positionX));
+                scaledorientationgrating(:,:,3) = zeros(size(positionX));
+                rightgratingfreq2 = zeros(size(scaledorientationgrating));
+                rightgratingfreq2(:,:,2) = scaledorientationgrating(:,:,1)';
             % 
->>>>>>> 2225917dd2a91181d665ab2e3c704c1e34b618e4
-                yOther = y;
-                y2Other = y2;
-                y(:,:,4) = alphaMask1;
-                y2(:,:,4) = alphaMask2;
+                leftgratingfreq1 = scaledorientationgrating;
+                leftgratingfreq2 = rightgratingfreq2;
+                scaledorientationgrating(:,:,4) = alphaMask1;
+                rightgratingfreq2(:,:,4) = alphaMask2;
     
-                yOther(:,:,4) = alphaMask2;
-                y2Other(:,:,4) = alphaMask1;
+                leftgratingfreq1(:,:,4) = alphaMask2;
+                leftgratingfreq2(:,:,4) = alphaMask1;
                 WaitSecs(0.01);
             otherwise
                 error('You selected an undefined scenario!');
         end
+
 
     % Select image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -231,11 +198,8 @@ for i = 1:length(shuffledScenarios)
     Screen('Close', tex1Other);
     Screen('Close', tex2Other);
 
-<<<<<<< HEAD
-    save('participant_scenario_order.mat', 'shuffledScenarios');
-=======
+
     save('participant_scenario_order.mat', "shuffledScenarios");
->>>>>>> 2225917dd2a91181d665ab2e3c704c1e34b618e4
     save('group1_participant_scenario_order.mat', 'group1Order');
     save('group2_participant_scenario_order.mat', 'group2Order');
 
