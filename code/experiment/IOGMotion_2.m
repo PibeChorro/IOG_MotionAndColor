@@ -70,12 +70,15 @@ design.fixCrossCoords = [
     ];
 %% PARTICIPANT INFORMATION
 
-% Variable creation that saves subjects’ information such as age, sex, file number/s…
+% Collect participant information
+participantInfo.age = input('Enter your age: ');
+participantInfo.gender = input('Enter your gender: ', 's');
 
-participantInfo.age = input('My Age is  ');
-participantInfo.gender = input('My Gender is    ');
-filename = sprintf('Participant_.mat');
+% Get subject number from user input
+subjectNumber = input('Enter subject number: ');
 
+% Generate filename based on subject number
+filename = sprintf('Subject%d_ParticipantInfo.xlsx', subjectNumber);
 
 %% INSTRUCTIONS:
 
@@ -113,8 +116,8 @@ try
        isMotion = 'no motion';
     elseif motionColumns == 1
         isMotion = 'motion';
-     end
-        
+    end
+
      if strcmp(data.Color1,'green')
          isColor = 'green';
      elseif strcmp(data.Color1, 'red')
@@ -162,17 +165,17 @@ alphaMask2(:,158:end) = 1;
                     rightGratingFreq1 = sin(x*0.3); % creates a sine-wave grating of spatial frequency 0.3
                     scaledOrientationGrating = ((rightGratingFreq1+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
 
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
+                    rightGratingFreq2 = zeros(size(scaledOrientationGrating));
+                    rightGratingFreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
 
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
+                    leftGratingFreq1 = scaledOrientationGrating;
+                    leftGratingFreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
 
                     scaledOrientationGrating(:,:,2)  = alphaMask1;
-                    rightgratingfreq2(:,:,2) = alphaMask2;
+                    rightGratingFreq2(:,:,2) = alphaMask2;
 
-                    leftgratingfreq1(:,:,2) = alphaMask2;
-                    leftgratingfreq2(:,:,2) = alphaMask1;
+                    leftGratingFreq1(:,:,2) = alphaMask2;
+                    leftGratingFreq2(:,:,2) = alphaMask1;
 
                 case 2 % 2: orientation and color - no motion
                     rightGratingFreq1 = sin(x*0.2);
@@ -180,37 +183,31 @@ alphaMask2(:,158:end) = 1;
 
                     scaledOrientationGrating(:,:,2) = zeros(size(x));
                     scaledOrientationGrating(:,:,3) = zeros(size(x));
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
+                    rightGratingFreq2 = zeros(size(scaledOrientationGrating));
+                    rightGratingFreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
 
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2 = rightgratingfreq2;
+                    leftGratingFreq1 = scaledOrientationGrating;
+                    leftGratingFreq2 = rightGratingFreq2;
                     scaledOrientationGrating(:,:,4) = alphaMask1;
-                    rightgratingfreq2(:,:,4) = alphaMask2;
+                    rightGratingFreq2(:,:,4) = alphaMask2;
 
-                    leftgratingfreq1(:,:,4) = alphaMask2;
-                    leftgratingfreq2(:,:,4) = alphaMask1;
+                    leftGratingFreq1(:,:,4) = alphaMask2;
+                    leftGratingFreq2(:,:,4) = alphaMask1;
                 case 3 % 3: orientation and motion - no color
-                    x = x + randi([-1 1]);
                     rightGratingFreq1 = sin(x*0.3);
                     scaledOrientationGrating = ((rightGratingFreq1+1)/2);
 
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
+                    rightGratingFreq2 = zeros(size(scaledOrientationGrating));
+                    rightGratingFreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
 
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2 = rightgratingfreq2;
+                    leftGratingFreq1 = scaledOrientationGrating;
+                    leftGratingFreq2 = rightGratingFreq2;
 
                     scaledOrientationGrating(:,:,2) = alphaMask1;
-                    rightgratingfreq2(:,:,2) = alphaMask2;
+                    rightGratingFreq2(:,:,2) = alphaMask2;
 
-                    leftgratingfreq1(:,:,2) = alphaMask2;
-                    leftgratingfreq2(:,:,2) = alphaMask1;
-
-%                     currentRun = 1;
-%                     if ~isempty(motionDirectionsPerRun(currentRun))
-%                        motionDirection = motionDirectionsPerRun(currentRun);
-%                     end
+                    leftGratingFreq1(:,:,2) = alphaMask2;
+                    leftGratingFreq2(:,:,2) = alphaMask1;
 
                 case 4 % 4: orientation, color and motion
                     x = x + randi([-1 1]);
@@ -219,20 +216,16 @@ alphaMask2(:,158:end) = 1;
 
                     scaledOrientationGrating(:,:,2) = zeros(size(x));
                     scaledOrientationGrating(:,:,3) = zeros(size(x));
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
+                    rightGratingFreq2 = zeros(size(scaledOrientationGrating));
+                    rightGratingFreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
 
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2 = rightgratingfreq2;
+                    leftGratingFreq1 = scaledOrientationGrating;
+                    leftGratingFreq2 = rightGratingFreq2;
                     scaledOrientationGrating(:,:,4) = alphaMask1;
-                    rightgratingfreq2(:,:,4) = alphaMask2;
+                    rightGratingFreq2(:,:,4) = alphaMask2;
 
-                    leftgratingfreq1(:,:,4) = alphaMask2;
-                    leftgratingfreq2(:,:,4) = alphaMask1;
-%                     currentRun = 1;
-%                     if ~isempty(motionDirectionsPerRun(currentRun)) % Checks if the cell corresponding to the currentRun in the motionDirectionsPerRun cell array is not empty
-%                         motionDirection = motionDirectionsPerRun(currentRun); % If the cell is not empty, assigns the content of that cell to the variable motionDirection. This content is expected to be a shuffled list of motion directions associated with the current run
-%                     end                  
+                    leftGratingFreq1(:,:,4) = alphaMask2;
+                    leftGratingFreq2(:,:,4) = alphaMask1;            
 
                     WaitSecs(0.01);
 
@@ -260,7 +253,7 @@ alphaMask2(:,158:end) = 1;
         tex1 = Screen('MakeTexture', ptb.window, scaledOrientationGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
 
-        tex2 = Screen('MakeTexture', ptb.window, rightgratingfreq2);     % create texture for stimulus
+        tex2 = Screen('MakeTexture', ptb.window, rightGratingFreq2);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
 
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
@@ -270,10 +263,10 @@ alphaMask2(:,158:end) = 1;
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
         Screen('DrawTexture', ptb.window, backGroundTexture);
 
-        tex1Other = Screen('MakeTexture', ptb.window, leftgratingfreq1);     % create texture for stimulus
+        tex1Other = Screen('MakeTexture', ptb.window, leftGratingFreq1);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
 
-        tex2Other = Screen('MakeTexture', ptb.window, leftgratingfreq2);     % create texture for stimulus
+        tex2Other = Screen('MakeTexture', ptb.window, leftGratingFreq2);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
 
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
@@ -285,11 +278,22 @@ alphaMask2(:,158:end) = 1;
         Screen('Close', tex2);
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
+        break;
+        end
+
 
 
 
 %% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
 
-% Saving participant’s mat files along with information about the randomization of the conditions…
+% Saving participant’s mat files
    
- save('participant_' + filename);
+ if ~isfile(filename)
+    headers = {'SubjectNumber', 'Age', 'Gender'};
+    xlswrite(filename, headers, 'Sheet1', 'A1');
+end
+
+% Append participant information to the Excel file
+xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
+end
+
