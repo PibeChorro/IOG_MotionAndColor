@@ -1,7 +1,7 @@
 function IOGMotionMain(setUp)
 
 if nargin < 1
-    setUp = 'Sarah Laptop' ;
+    setUp = 'CIN-Mac-Setup' ;
 
 end
 
@@ -89,7 +89,7 @@ for runIdx = 1:length(uniqueRuns) % Starts a loop that iterates over the unique 
     end
 end
 catch runError
-    sca
+    sca;
     rethrow(runError);
 end
 

@@ -170,9 +170,9 @@ switch ptb.SetUp
         [ptb.window, ptb.windowRect] = PsychImaging('OpenWindow', ptb.screenNumber, ptb.BackgroundColor, [0 0 800 600], [],[],4); 
         % Real world variable
         ptb.FontSize = Screen('TextSize', ptb.window, 15);
-        ptb.DistToMonitor   = 570;  % Distance to monitor in mm (measured by hand) - REMEASURE
-        ptb.widthMonitor    = 520;  % monitor width measured by hand - REMEASURE
-        ptb.heightMonitor   = 325;  % monitor height measured by hand - REMEASURE
+        ptb.DistToMonitor   = 570;  % Distance to monitor in mm (measured by hand) - Preferred distance to monitor
+        ptb.widthMonitor    = 520;  % monitor width measured by hand - Better to remeasure
+        ptb.heightMonitor   = 326;  % monitor height measured by hand - Better to remeasure
         ptb.lineWidthInPix  = 4;    % line width in pixels for fixation cross      
     otherwise
         error('No proper Set up was selected');
