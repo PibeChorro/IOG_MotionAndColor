@@ -107,8 +107,11 @@ end
 % Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
 
 try
-    data = readtable('Run_1.xlsx');
-    colorColumns = data.Color1 & data.Color2;
+    
+%     data = readtable('Run_1.xlsx');
+%     colorColumn1 = data.Color1;
+%     colorColumn2 = data.Color2;
+    
     
     % Randomly select motion directions for each trial in cases 3 and 4
     if design.scenario == 3 || design.scenario == 4
@@ -123,6 +126,25 @@ try
         motionColumn1 = 'no motion';
         motionColumn2 = 'no motion';
     end
+
+    % Randomly select colors
+    colorOptions = {'red', 'green', 'black'};
+    randomIndicesColor1 = randperm(length(colorOptions));
+    
+    colorColumn1 = colorOptions{randomIndicesColor1(1)};
+    
+    % Ensure that colorColumn2 is complementary to colorColumn1
+    switch colorColumn1
+        case 'red'
+            complementaryColor2 = 'green';
+        case 'green'
+            complementaryColor2 = 'red';
+        case 'black'
+            complementaryColor2 = 'black';
+    end
+    
+    colorColumn2 = complementaryColor2;
+    
     
     % Initialize isMotion to 'no motion'
     isMotion = 'no motion';
@@ -141,24 +163,15 @@ try
         isMotion = 'leftward motion';
     end
 
-
-     if strcmp(data.Color1,'green')
-         isColor = 'green';
-     elseif strcmp(data.Color1, 'red')
-         isColor = 'red';
-     elseif strcmp(data.Color2, 'green')
-         isColor = 'green';
-     elseif strcmp(data.Color2, 'red')
-         isColor = 'red';
-     end
-
-     if colorColumns == 0
-        isColor = 'no color';
-     elseif colorColumns == 'green'
-         isColor = 'color';
-     elseif colorColumns == 'red'
-         isColor = 'color';
-     end
+    % Initialize isColor to 'no color'
+    isColor = 'no color';
+    
+    % Check color conditions
+    if strcmp(colorColumn1, 'green') && strcmp(colorColumn2, 'red')
+        isColor = 'green-red';
+    elseif strcmp(colorColumn1, 'red') && strcmp(colorColumn2, 'green')
+        isColor = 'red-green';
+    end
 
      trialString = ['We are in a ' isMotion isColor ' trial'];
      fprintf(trialString);
