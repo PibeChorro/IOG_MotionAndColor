@@ -6,10 +6,9 @@ function IOGMotionMain_2(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-Mac-Setup' ;
+    setUp = 'Sarah Laptop' ;
 
 end
-
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
  
@@ -109,14 +108,39 @@ end
 
 try
     data = readtable('Run_1.xlsx');
-    motionColumns = data.Motion1 & data.Motion2;
     colorColumns = data.Color1 & data.Color2;
+    
+    % Randomly select motion directions for each trial in cases 3 and 4
+    if design.scenario == 3 || design.scenario == 4
+        motionColumn1Options = {'no motion', 'upward motion', 'downward motion'};
+        randomIndices1 = randperm(length(motionColumn1Options));
+        motionColumn1 = motionColumn1Options{randomIndices1(1)};
 
-    if motionColumns == 0
-       isMotion = 'no motion';
-    elseif motionColumns == 1
-        isMotion = 'motion';
+        motionColumn2Options = {'rightward motion', 'leftward motion', 'no motion'};
+        randomIndices2 = randperm(length(motionColumn2Options));
+        motionColumn2 = motionColumn2Options{randomIndices2(1)};
+    else
+        motionColumn1 = 'no motion';
+        motionColumn2 = 'no motion';
     end
+    
+    % Initialize isMotion to 'no motion'
+    isMotion = 'no motion';
+
+    % Check motionColumn1
+    if strcmp(motionColumn1, 'upward motion')
+        isMotion = 'upward motion';
+    elseif strcmp(motionColumn1, 'downward motion')
+        isMotion = 'downward motion';
+    end
+
+    % Check motionColumn2
+    if strcmp(motionColumn2, 'rightward motion')
+        isMotion = 'rightward motion';
+    elseif strcmp(motionColumn2, 'leftward motion')
+        isMotion = 'leftward motion';
+    end
+
 
      if strcmp(data.Color1,'green')
          isColor = 'green';
@@ -194,6 +218,16 @@ alphaMask2(:,158:end) = 1;
                     leftGratingFreq1(:,:,4) = alphaMask2;
                     leftGratingFreq2(:,:,4) = alphaMask1;
                 case 3 % 3: orientation and motion - no color
+                    if strcmp(motionColumn1, 'upward motion')
+                        x = x + 1;
+                    elseif strcmp(motionColumn1, 'downward motion')
+                        x = x - 1;
+                    end
+                    if strcmp(motionColumn2, 'rightward motion')
+                        x = x + 1;
+                    elseif strcmp(motionColumn2, 'leftward motion')
+                        x = x - 1;
+                    end
                     rightGratingFreq1 = sin(x*0.3);
                     scaledOrientationGrating = ((rightGratingFreq1+1)/2);
 
@@ -210,7 +244,16 @@ alphaMask2(:,158:end) = 1;
                     leftGratingFreq2(:,:,2) = alphaMask1;
 
                 case 4 % 4: orientation, color and motion
-                    x = x + randi([-1 1]);
+                    if strcmp(motionColumn1, 'upward motion')
+                        x = x + 1;
+                    elseif strcmp(motionColumn1, 'downward motion')
+                        x = x - 1;
+                    end
+                    if strcmp(motionColumn2, 'rightward motion')
+                        x = x + 1;
+                    elseif strcmp(motionColumn2, 'leftward motion')
+                        x = x - 1;
+                    end                    
                     rightGratingFreq1 = sin(x*0.2);
                     scaledOrientationGrating = ((rightGratingFreq1+1)/2);
 
@@ -232,15 +275,6 @@ alphaMask2(:,158:end) = 1;
                 otherwise
                     error('You selected an undefined scenario!');
             end
-
-
-% Counterbalancing and randomizing different cues based on the conditions.
-
-
-
-
-
-
 
 
 %% CREATION OF STIMULI AND CLOSING SCREENS
@@ -282,18 +316,16 @@ alphaMask2(:,158:end) = 1;
         end
 
 
-
-
 %% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
 
-% Saving participant’s mat files
+    % Saving participant’s mat files
    
  if ~isfile(filename)
     headers = {'SubjectNumber', 'Age', 'Gender'};
     xlswrite(filename, headers, 'Sheet1', 'A1');
 end
 
-% Append participant information to the Excel file
-xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
+    % Append participant information to the Excel file
+    xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
+    
 end
-
