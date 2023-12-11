@@ -1,18 +1,28 @@
+%% GENERAL FUNCTION AND MONITOR SETUP:
+
+% Function creation for the experimental code.
 function IOGMotionMain(setUp)
 
-if nargin < 1
-    setUp = 'CIN-Mac-Setup' ;
+% Setup input for the monitor being used.
 
+if nargin < 1
+    setUp = 'Sarah Laptop';
 end
+
+%% OPEN PSYCHTOOLBOX FUNCTION:
+
+% Opening psychtoolbox function ptb.
 
 try
     ptb = PTBSettingsIOGMotion(setUp);
 catch PTBERROR
     sca;
-     rethrow(PTBERROR);
+    rethrow(PTBERROR);
 end
+%% DESIGN-RELATED:
 
-%% design related
+% Different design-related information.
+
 design = getInstructions();
 % the scenario determines the type(s) of low level cues for interocular
 % grouping:
@@ -20,10 +30,11 @@ design = getInstructions();
 % 2: orientation and color - no motion
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
+
 design.scenario = 4;
 
-design.stimulusPresentationTime = 90 - ptb.ifi/2;
-design.ITI                      = 10 - ptb.ifi/2;
+design.stimulusPresentationTime = 5 - ptb.ifi/2;
+design.ITI                      = 3 - ptb.ifi/2;
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
@@ -55,252 +66,178 @@ design.fixCrossCoords = [
     -design.fixCrossInPixelsX/2 design.fixCrossInPixelsX/2 0 0; ...
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
+%% PARTICIPANT INFORMATION
+
+% Collect participant information
+participantInfo.age = input('Enter your age: ');
+participantInfo.gender = input('Enter your gender: ', 's');
+
+% Get subject number from user input
+subjectNumber = input('Enter subject number: ');
+
+% Generate filename based on subject number
+filename = sprintf('Subject%d_ParticipantInfo.xlsx', subjectNumber);
+
+%% INSTRUCTIONS:
+
+% Experimental instructions with texts (using experimental function from another mat script).
 
 try
-<<<<<<< Updated upstream
     Experiment_Instructions(ptb);
-=======
-        openExperimentWindow(ptb);
->>>>>>> Stashed changes
-catch OEWERROR
+catch instructionsError
     sca;
-    rethrow(OEWERROR);
+    rethrow(instructionsError);
 end
+
+
+%% FUSION TEST:
+
+% Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
 
 try
     alignFusion(ptb, design);
-catch alignERROR
+catch alignFusionError
     sca;
-    rethrow(alignERROR);
+    rethrow(alignFusionError);
 end
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+%% DATA READING:
+
+% Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
+
+>>>>>>> ccf9a2b5a04b640cf45139ef7f244269176f1254
 try
-data = readtable('Run_1.xlsx');
-orientations = data(data.Orientation == "Horizontal" | data.Orientation == "Vertical", :);
-uniqueRuns = unique(orientations.Run); % Extracts unique values from the Run column in table and stores them in the array uniqueRuns
-
-% Initializes motionDirectionsPerRun as a cell array
-motionDirectionsPerRun = cell(1, length(uniqueRuns)); % Creates a cell array named motionDirectionsPerRun with one row and a number of columns equal to the length of uniqueRuns
-
-for runIdx = 1:length(uniqueRuns) % Starts a loop that iterates over the unique runs
-    run = uniqueRuns(runIdx);
-
-    if any(ismember(orientations.Run, run)) % Checks if any rows in the orientations table have the current run value
-        motionDirections = orientations.MotionDirection(orientations.Run == run); % Extracts motion directions for the current run from the MotionDirection column in the orientations table
-        motionDirectionsPerRun{runIdx} = motionDirections(randperm(length(motionDirections))); % Shuffles the extracted motion directions using randperm and assigns them to the corresponding cell in motionDirectionsPerRun
-    else
-        motionDirectionsPerRun{runIdx} = {};
-    end
-end
-catch runError
+    data = readtable('Run_1.xlsx');
+catch readDataError
     sca;
-    rethrow(runError);
+    rethrow(readDataError);
 end
-
-
-if motionColumn == 0
-    isMotion = 'no motion';
-else
-    isMotion = 'motion';
-end
-
-if colorColumn == 'black'
-    isColor = 'no color';
-else
-    isColor = 'color';
-end
-
-trialString = ['We are in a ' isMotion isColor ' trial'];
-fprintf(trialString);
-
-x = repmat(1:314, 314,1);
 =======
-    % Iterate over the four Run files sequentially
-    try
-    motionDirectionsPerRun = cell(1,4);
-    runNumber = 1;
-    filename = 'Run_1.xlsx';
-    data = readtable(filename);
-    motionDirectionsPerRun{runNumber} = [data.Motion1, data.Motion2];
+% try
+% data = readtable('Run_1.xlsx');
+% orientations = data(data.Orientation == "Horizontal" | data.Orientation == "Vertical", :);
+% uniqueRuns = unique(orientations.Run); % Extracts unique values from the Run column in table and stores them in the array uniqueRuns
+>>>>>>> Stashed changes
 
-    catch motionError
-        sca;
-        rethrow(motionError);
+%% REPETITION MATRIX FOR MOTION SIMULATION
+
+% TODO (VP): change limit of array from arbitrary 314 to a well thought
+% through value
+[xHorizontal, xVertical] = meshgrid(1:314);
+
+%% ALPHA MASKS -- MONDREAN MASKS
+
+alphaMask1  = zeros(size(xHorizontal));
+alphaMask2 = alphaMask1;
+% TODO (VP): make alpha mask values dynamic
+alphaMask1(:,1:157) = 1;
+alphaMask2(:,158:end) = 1;
+
+%%  INTRODUCTION OF THE CASES/CONDITIONS:
+
+% Introducing the different conditions of the experiment along with assigned variables.
+
+% get a Flip for timing
+vbl = Screen('Flip',ptb.window);
+
+for trial = 1:length(data.Trial)
+    % get color indices for gratings
+    if strcmp(data.Color1, 'red')
+        verticalIndices = 1;
+        horizontalIndices = 2;
+    elseif strcmp(data.Color1, 'green')
+        verticalIndices = 2;
+        horizontalIndices = 1;
+    else
+        verticalIndices = 1:3;
+        horizontalIndices = 1:3;
     end
->>>>>>> Stashed changes
-
-     x = repmat(1:314, 314, 1);
-
-
-     alphaMask1  = zeros(size(x));
-     alphaMask2 = alphaMask1;
-     alphaMask1(:,1:157) = 1;
-     alphaMask2(:,158:end) = 1;
+    % get timing of trial onset
+    trialOnset = GetSecs;
+    % updating the x arrays 
+    while vbl - trialOnset < design.stimulusPresentationTime
+        xHorizontal = xHorizontal + data.Motion1(trial);
+        xVertical = xVertical + data.Motion2(trial);
+    
+        % TODO (VP): set factor for sinus wave as a variable 
+        horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
+        leftScaledHorizontalGrating = ((horizontalGrating+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
+    
+        verticalGrating = sin(xVertical*0.3);
+        leftScaledVerticalGrating = ((verticalGrating+1)/2);
+    
+        leftScaledHorizontalGrating(:,:,2)  = alphaMask1;
+        leftScaledVerticalGrating(:,:,2) = alphaMask2;
         
-     scenarios = 1:4;
-     shuffledScenarios = scenarios(randperm(length(scenarios)));
-        
-     group1Order = shuffledScenarios;
-     group2Order = fliplr(shuffledScenarios);
+        rightScaledHorizontalGrating = leftScaledHorizontalGrating;
+        rightScaledHorizontalGrating(:,:,2) = alphaMask2;
 
-  try
-    for i = 1:length(shuffledScenarios)
-            currentScenario = shuffledScenarios(i);
-            design.scenario = currentScenario;
-        while true
-            switch design.scenario
-                case 1 % 1: only orientation - no motion, no color
-                    rightGratingFreq1 = sin(x*0.3); % creates a sine-wave grating of spatial frequency 0.3
-                    scaledOrientationGrating = ((rightGratingFreq1+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
-
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
-
-                    leftgratingfreq1 = scaledOrientationGrating;
-                     leftgratingfreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
-
-                    scaledOrientationGrating(:,:,2)  = alphaMask1;
-                    rightgratingfreq2(:,:,2) = alphaMask2;
-
-                    leftgratingfreq1(:,:,2) = alphaMask2;
-                    leftgratingfreq2(:,:,2) = alphaMask1;
-
-                case 2 % 2: orientation and color - no motion
-                    rightGratingFreq1 = sin(x*0.2);
-                    scaledOrientationGrating = ((rightGratingFreq1+1)/2);
-
-                    scaledOrientationGrating(:,:,2) = zeros(size(x));
-                    scaledOrientationGrating(:,:,3) = zeros(size(x));
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
-
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2 = rightgratingfreq2;
-                    scaledOrientationGrating(:,:,4) = alphaMask1;
-                    rightgratingfreq2(:,:,4) = alphaMask2;
-
-                    leftgratingfreq1(:,:,4) = alphaMask2;
-                    leftgratingfreq2(:,:,4) = alphaMask1;
-<<<<<<< Updated upstream
-                case 3 % 3: orientation and motion - no color
-                    x = x + randi([-1 1]);
-=======
-                case 3 % 3: orientation and motion - no color               
->>>>>>> Stashed changes
-                    rightGratingFreq1 = sin(x*0.3);
-                    scaledOrientationGrating = ((rightGratingFreq1+1)/2);
-
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
-
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2 = rightgratingfreq2;
-
-                    scaledOrientationGrating(:,:,2) = alphaMask1;
-                    rightgratingfreq2(:,:,2) = alphaMask2;
-
-                    leftgratingfreq1(:,:,2) = alphaMask2;
-                    leftgratingfreq2(:,:,2) = alphaMask1;
-<<<<<<< Updated upstream
-
-%                     currentRun = 1;
-%                     if ~isempty(motionDirectionsPerRun(currentRun))
-%                        motionDirection = motionDirectionsPerRun(currentRun);
-%                     end
-
-                case 4 % 4: orientation, color and motion
-                    x = x + randi([-1 1]);
-                    rightGratingFreq1 = sin(x*0.2);
-=======
-                    currentRun = runNumber;
-                    if ~isempty(motionDirectionsPerRun{currentRun})
-                        motionDirection = motionDirectionsPerRun{currentRun};
-                    else
-                        error('Motion direction data is empty for run %s.', currentRun);
-                    end                    
-                    x = x + motionDirection(randi(numel(motionDirection)));
-
-                case 4 % 4: orientation, color and motion     
-%                     x = x + 2;
-                    rightGratingFreq1 = sin(x*0.3);
->>>>>>> Stashed changes
-                    scaledOrientationGrating = ((rightGratingFreq1+1)/2);
-
-                    scaledOrientationGrating(:,:,2) = zeros(size(x));
-                    scaledOrientationGrating(:,:,3) = zeros(size(x));
-                    rightgratingfreq2 = zeros(size(scaledOrientationGrating));
-                    rightgratingfreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
-
-                    leftgratingfreq1 = scaledOrientationGrating;
-                    leftgratingfreq2 = rightgratingfreq2;
-                    scaledOrientationGrating(:,:,4) = alphaMask1;
-                    rightgratingfreq2(:,:,4) = alphaMask2;
-
-                    leftgratingfreq1(:,:,4) = alphaMask2;
-                    leftgratingfreq2(:,:,4) = alphaMask1;
-<<<<<<< Updated upstream
-%                     currentRun = 1;
-%                     if ~isempty(motionDirectionsPerRun(currentRun)) % Checks if the cell corresponding to the currentRun in the motionDirectionsPerRun cell array is not empty
-%                         motionDirection = motionDirectionsPerRun(currentRun); % If the cell is not empty, assigns the content of that cell to the variable motionDirection. This content is expected to be a shuffled list of motion directions associated with the current run
-%                     end                  
-=======
-                    currentRun = runNumber;
-                    if ~isempty(motionDirectionsPerRun{currentRun})
-                        motionDirection = motionDirectionsPerRun{currentRun};
-                    end                       
-                    x = x + motionDirection(randi(numel(motionDirection)));
->>>>>>> Stashed changes
-
-                    WaitSecs(0.01);
-
-                otherwise
-                    error('You selected an undefined scenario!');
-            end
-
-
+        rightScaledVerticalGrating = leftScaledVerticalGrating;
+        rightScaledVerticalGrating(:,:,2) = alphaMask1;
+    
+        %% CREATION OF STIMULI AND CLOSING SCREENS
+        % Creation of experimental stimuli with different features (textures, colors…)
+    
         % Select image buffer for true color image:
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
         Screen('DrawTexture', ptb.window, backGroundTexture);
-
-        tex1 = Screen('MakeTexture', ptb.window, scaledOrientationGrating);     % create texture for stimulus
+    
+        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
-
-        tex2 = Screen('MakeTexture', ptb.window, rightgratingfreq2);     % create texture for stimulus
+    
+        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
-
+    
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    
         % Select image buffer for true color image:
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
         Screen('DrawTexture', ptb.window, backGroundTexture);
-
-        tex1Other = Screen('MakeTexture', ptb.window, leftgratingfreq1);     % create texture for stimulus
+    
+        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
-
-        tex2Other = Screen('MakeTexture', ptb.window, leftgratingfreq2);     % create texture for stimulus
+    
+        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
-
+    
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
+    
         Screen('DrawingFinished', ptb.window);
-        Screen('Flip', ptb.window);
-
+        vbl = Screen('Flip', ptb.window);
+    
         Screen('Close', tex1);
         Screen('Close', tex2);
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
-
-
-        save('participant_scenario_order.mat', "shuffledScenarios");
-        save('group1_participant_scenario_order.mat', 'group1Order');
-        save('group2_participant_scenario_order.mat', 'group2Order');
-                 break;
-        end
     end
-  catch whileLoopError
-      sca;
-      rehtrow(whileLoopError);
-  end
+    Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+
+    Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    Screen('DrawingFinished', ptb.window);
+    vbl = Screen('Flip', ptb.window);
+    WaitSecs(design.ITI)
+end
+
+
+%% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
+
+% Saving participant’s mat files
+
+% if ~isfile(filename)
+%     headers = {'SubjectNumber', 'Age', 'Gender'};
+%     xlswrite(filename, headers, 'Sheet1', 'A1');
+% end
+% 
+% % Append participant information to the Excel file
+% xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
+
 end
