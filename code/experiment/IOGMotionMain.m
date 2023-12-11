@@ -33,8 +33,8 @@ design = getInstructions();
 
 design.scenario = 4;
 
-design.stimulusPresentationTime = 90 - ptb.ifi/2;
-design.ITI                      = 10 - ptb.ifi/2;
+design.stimulusPresentationTime = 5 - ptb.ifi/2;
+design.ITI                      = 3 - ptb.ifi/2;
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
@@ -106,75 +106,7 @@ end
 % Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
 
 try
-
-    %     data = readtable('Run_1.xlsx');
-    %     colorColumn1 = data.Color1;
-    %     colorColumn2 = data.Color2;
-
-
-    % Randomly select motion directions for each trial in cases 3 and 4
-    if design.scenario == 3 || design.scenario == 4
-        motionColumn1Options = {'no motion', 'upward motion', 'downward motion'};
-        randomIndices1 = randperm(length(motionColumn1Options));
-        motionColumn1 = motionColumn1Options{randomIndices1(1)};
-
-        motionColumn2Options = {'rightward motion', 'leftward motion', 'no motion'};
-        randomIndices2 = randperm(length(motionColumn2Options));
-        motionColumn2 = motionColumn2Options{randomIndices2(1)};
-    else
-        motionColumn1 = 'no motion';
-        motionColumn2 = 'no motion';
-    end
-
-    % Randomly select colors
-    colorOptions = {'red', 'green', 'black'};
-    randomIndicesColor1 = randperm(length(colorOptions));
-
-    colorColumn1 = colorOptions{randomIndicesColor1(1)};
-
-    % Ensure that colorColumn2 is complementary to colorColumn1
-    switch colorColumn1
-        case 'red'
-            complementaryColor2 = 'green';
-        case 'green'
-            complementaryColor2 = 'red';
-        case 'black'
-            complementaryColor2 = 'black';
-    end
-
-    colorColumn2 = complementaryColor2;
-
-
-    % Initialize isMotion to 'no motion'
-    isMotion = 'no motion';
-
-    % Check motionColumn1
-    if strcmp(motionColumn1, 'upward motion')
-        isMotion = 'upward motion';
-    elseif strcmp(motionColumn1, 'downward motion')
-        isMotion = 'downward motion';
-    end
-
-    % Check motionColumn2
-    if strcmp(motionColumn2, 'rightward motion')
-        isMotion = 'rightward motion';
-    elseif strcmp(motionColumn2, 'leftward motion')
-        isMotion = 'leftward motion';
-    end
-
-    % Initialize isColor to 'no color'
-    isColor = 'no color';
-
-    % Check color conditions
-    if strcmp(colorColumn1, 'green') && strcmp(colorColumn2, 'red')
-        isColor = 'green-red';
-    elseif strcmp(colorColumn1, 'red') && strcmp(colorColumn2, 'green')
-        isColor = 'red-green';
-    end
-
-    trialString = ['We are in a ' isMotion isColor ' trial'];
-    fprintf(trialString);
-
+    data = readtable('Run_1.xlsx');
 catch readDataError
     sca;
     rethrow(readDataError);
@@ -182,12 +114,15 @@ end
 
 %% REPETITION MATRIX FOR MOTION SIMULATION
 
-x = repmat(1:314,314,1);
+% TODO (VP): change limit of array from arbitrary 314 to a well thought
+% through value
+[xHorizontal, xVertical] = meshgrid(1:314);
 
 %% ALPHA MASKS -- MONDREAN MASKS
 
-alphaMask1  = zeros(size(x));
+alphaMask1  = zeros(size(xHorizontal));
 alphaMask2 = alphaMask1;
+% TODO (VP): make alpha mask values dynamic
 alphaMask1(:,1:157) = 1;
 alphaMask2(:,158:end) = 1;
 
@@ -195,136 +130,74 @@ alphaMask2(:,158:end) = 1;
 
 % Introducing the different conditions of the experiment along with assigned variables.
 
-while true
-    switch design.scenario
-        case 1 % 1: only orientation - no motion, no color
-            rightGratingFreq1 = sin(x*0.3); % creates a sine-wave grating of spatial frequency 0.3
-            scaledOrientationGrating = ((rightGratingFreq1+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
+% get a Flip for timing
+vbl = Screen('Flip',ptb.window);
 
-            rightGratingFreq2 = zeros(size(scaledOrientationGrating));
-            rightGratingFreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
-
-            leftGratingFreq1 = scaledOrientationGrating;
-            leftGratingFreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
-
-            scaledOrientationGrating(:,:,2)  = alphaMask1;
-            rightGratingFreq2(:,:,2) = alphaMask2;
-
-            leftGratingFreq1(:,:,2) = alphaMask2;
-            leftGratingFreq2(:,:,2) = alphaMask1;
-
-        case 2 % 2: orientation and color - no motion
-            rightGratingFreq1 = sin(x*0.2);
-            scaledOrientationGrating = ((rightGratingFreq1+1)/2);
-
-            scaledOrientationGrating(:,:,2) = zeros(size(x));
-            scaledOrientationGrating(:,:,3) = zeros(size(x));
-            rightGratingFreq2 = zeros(size(scaledOrientationGrating));
-            rightGratingFreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
-
-            leftGratingFreq1 = scaledOrientationGrating;
-            leftGratingFreq2 = rightGratingFreq2;
-            scaledOrientationGrating(:,:,4) = alphaMask1;
-            rightGratingFreq2(:,:,4) = alphaMask2;
-
-            leftGratingFreq1(:,:,4) = alphaMask2;
-            leftGratingFreq2(:,:,4) = alphaMask1;
-        case 3 % 3: orientation and motion - no color
-            if strcmp(motionColumn1, 'upward motion')
-                x = x + 1;
-            elseif strcmp(motionColumn1, 'downward motion')
-                x = x - 1;
-            end
-            if strcmp(motionColumn2, 'rightward motion')
-                x = x + 1;
-            elseif strcmp(motionColumn2, 'leftward motion')
-                x = x - 1;
-            end
-            rightGratingFreq1 = sin(x*0.3);
-            scaledOrientationGrating = ((rightGratingFreq1+1)/2);
-
-            rightGratingFreq2 = zeros(size(scaledOrientationGrating));
-            rightGratingFreq2(:,:,1) = scaledOrientationGrating(:,:,1)';
-
-            leftGratingFreq1 = scaledOrientationGrating;
-            leftGratingFreq2 = rightGratingFreq2;
-
-            scaledOrientationGrating(:,:,2) = alphaMask1;
-            rightGratingFreq2(:,:,2) = alphaMask2;
-
-            leftGratingFreq1(:,:,2) = alphaMask2;
-            leftGratingFreq2(:,:,2) = alphaMask1;
-
-        case 4 % 4: orientation, color and motion
-            if strcmp(motionColumn1, 'upward motion')
-                x = x + 1;
-            elseif strcmp(motionColumn1, 'downward motion')
-                x = x - 1;
-            end
-            if strcmp(motionColumn2, 'rightward motion')
-                x = x + 1;
-            elseif strcmp(motionColumn2, 'leftward motion')
-                x = x - 1;
-            end
-            rightGratingFreq1 = sin(x*0.2);
-            scaledOrientationGrating = ((rightGratingFreq1+1)/2);
-
-            scaledOrientationGrating(:,:,2) = zeros(size(x));
-            scaledOrientationGrating(:,:,3) = zeros(size(x));
-            rightGratingFreq2 = zeros(size(scaledOrientationGrating));
-            rightGratingFreq2(:,:,2) = scaledOrientationGrating(:,:,1)';
-
-            leftGratingFreq1 = scaledOrientationGrating;
-            leftGratingFreq2 = rightGratingFreq2;
-            scaledOrientationGrating(:,:,4) = alphaMask1;
-            rightGratingFreq2(:,:,4) = alphaMask2;
-
-            leftGratingFreq1(:,:,4) = alphaMask2;
-            leftGratingFreq2(:,:,4) = alphaMask1;
-
-            WaitSecs(0.01);
-
-        otherwise
-            error('You selected an undefined scenario!');
+for trial = 1:length(data.Trial)
+    % get timing of trial onset
+    trialOnset = GetSecs;
+    % updating the x arrays 
+    while vbl - trialOnset < design.stimulusPresentationTime
+        xHorizontal = xHorizontal + data.Motion1(trial);
+        xVertical = xVertical + data.Motion2(trial);
+    
+        % TODO (VP): set factor for sinus wave as a variable 
+        horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
+        scaledHorizontalGrating = ((horizontalGrating+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
+    
+        verticalGrating = sin(xVertical*0.3);
+        scaledVerticalGrating = ((verticalGrating+1)/2);
+    
+        scaledHorizontalGrating(:,:,2)  = alphaMask1;
+        scaledVerticalGrating(:,:,2) = alphaMask2;
+    
+    
+        %% CREATION OF STIMULI AND CLOSING SCREENS
+        % Creation of experimental stimuli with different features (textures, colors…)
+    
+        % Select image buffer for true color image:
+        Screen('SelectStereoDrawBuffer', ptb.window, 0);
+        Screen('DrawTexture', ptb.window, backGroundTexture);
+    
+        tex1 = Screen('MakeTexture', ptb.window, scaledHorizontalGrating);     % create texture for stimulus
+        Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
+    
+        tex2 = Screen('MakeTexture', ptb.window, scaledVerticalGrating);     % create texture for stimulus
+        Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
+    
+        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    
+        % Select image buffer for true color image:
+        Screen('SelectStereoDrawBuffer', ptb.window, 1);
+        Screen('DrawTexture', ptb.window, backGroundTexture);
+    
+        tex1Other = Screen('MakeTexture', ptb.window, scaledHorizontalGrating);     % create texture for stimulus
+        Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
+    
+        tex2Other = Screen('MakeTexture', ptb.window, scaledVerticalGrating);     % create texture for stimulus
+        Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
+    
+        Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    
+        Screen('DrawingFinished', ptb.window);
+        vbl = Screen('Flip', ptb.window);
+    
+        Screen('Close', tex1);
+        Screen('Close', tex2);
+        Screen('Close', tex1Other);
+        Screen('Close', tex2Other);
     end
-
-
-    %% CREATION OF STIMULI AND CLOSING SCREENS
-    % Creation of experimental stimuli with different features (textures, colors…)
-
-    % Select image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
-    Screen('DrawTexture', ptb.window, backGroundTexture);
-
-    tex1 = Screen('MakeTexture', ptb.window, scaledOrientationGrating);     % create texture for stimulus
-    Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
-
-    tex2 = Screen('MakeTexture', ptb.window, rightGratingFreq2);     % create texture for stimulus
-    Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
-
     Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
 
-    % Select image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 1);
-    Screen('DrawTexture', ptb.window, backGroundTexture);
-
-    tex1Other = Screen('MakeTexture', ptb.window, leftGratingFreq1);     % create texture for stimulus
-    Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
-
-    tex2Other = Screen('MakeTexture', ptb.window, leftGratingFreq2);     % create texture for stimulus
-    Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
-
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
     Screen('DrawingFinished', ptb.window);
-    Screen('Flip', ptb.window);
-
-    Screen('Close', tex1);
-    Screen('Close', tex2);
-    Screen('Close', tex1Other);
-    Screen('Close', tex2Other);
-    break;
+    vbl = Screen('Flip', ptb.window);
+    WaitSecs(design.ITI)
 end
 
 
@@ -332,12 +205,12 @@ end
 
 % Saving participant’s mat files
 
-if ~isfile(filename)
-    headers = {'SubjectNumber', 'Age', 'Gender'};
-    xlswrite(filename, headers, 'Sheet1', 'A1');
-end
-
-% Append participant information to the Excel file
-xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
+% if ~isfile(filename)
+%     headers = {'SubjectNumber', 'Age', 'Gender'};
+%     xlswrite(filename, headers, 'Sheet1', 'A1');
+% end
+% 
+% % Append participant information to the Excel file
+% xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
 
 end
