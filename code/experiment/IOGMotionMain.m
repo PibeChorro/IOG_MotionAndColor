@@ -6,7 +6,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'Sarah Laptop';
+    setUp = 'CIN-Mac-Setup';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -101,38 +101,38 @@ catch alignFusionError
     rethrow(alignFusionError);
 end
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
 %% DATA READING:
 
 % Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
 
->>>>>>> ccf9a2b5a04b640cf45139ef7f244269176f1254
 try
     data = readtable('Run_1.xlsx');
 catch readDataError
     sca;
     rethrow(readDataError);
 end
-=======
-% try
-% data = readtable('Run_1.xlsx');
-% orientations = data(data.Orientation == "Horizontal" | data.Orientation == "Vertical", :);
-% uniqueRuns = unique(orientations.Run); % Extracts unique values from the Run column in table and stores them in the array uniqueRuns
->>>>>>> Stashed changes
 
 %% REPETITION MATRIX FOR MOTION SIMULATION
 
 % TODO (VP): change limit of array from arbitrary 314 to a well thought
 % through value
+
 [xHorizontal, xVertical] = meshgrid(1:314);
+
+% Initialize xHorizontal as a four-dimensional variable
+fourxHorizontal = zeros(size(xHorizontal, 1), size(xHorizontal, 2), 3, 1);
+
+% Initialize xVertical as a four-dimensional variable
+fourxVertical = zeros(size(xVertical, 1), size(xVertical, 2), 3, 1);
+
+% yHorizontal = sin(xHorizontal*0.3);
+% yVertical = sin(xVertical*0.3);
 
 %% ALPHA MASKS -- MONDREAN MASKS
 
 alphaMask1  = zeros(size(xHorizontal));
 alphaMask2 = alphaMask1;
+
 % TODO (VP): make alpha mask values dynamic
 alphaMask1(:,1:157) = 1;
 alphaMask2(:,158:end) = 1;
@@ -156,6 +156,7 @@ for trial = 1:length(data.Trial)
         verticalIndices = 1:3;
         horizontalIndices = 1:3;
     end
+
     % get timing of trial onset
     trialOnset = GetSecs;
     % updating the x arrays 
@@ -178,7 +179,15 @@ for trial = 1:length(data.Trial)
 
         rightScaledVerticalGrating = leftScaledVerticalGrating;
         rightScaledVerticalGrating(:,:,2) = alphaMask1;
-    
+
+        if strcmp(data.Color1, 'red')
+            fourxHorizontal(:,:,horizontalIndices,1) = cat(3, [1; 0; 0;], zeros(3,1));
+            fourxVertical(:,:,VerticalIndices,1) = cat(3, [0; 1; 0;], zeros(3,1));
+        elseif strcmp(data.Color1, 'green')
+            fourxHorizontal(:,:,horizontalIndices,1) = cat(3, [0; 1; 0;], zeros(3,1));
+            fourxVertical(:,:,verticalIndices,1) = cat(3, [0; 1; 0;], zeros(3,1));
+        end
+
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
     
