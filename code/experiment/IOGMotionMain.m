@@ -134,6 +134,17 @@ alphaMask2(:,158:end) = 1;
 vbl = Screen('Flip',ptb.window);
 
 for trial = 1:length(data.Trial)
+    % get color indices for gratings
+    if strcmp(data.Color1, 'red')
+        verticalIndices = 1;
+        horizontalIndices = 2;
+    elseif strcmp(data.Color1, 'green')
+        verticalIndices = 2;
+        horizontalIndices = 1;
+    else
+        verticalIndices = 1:3;
+        horizontalIndices = 1:3;
+    end
     % get timing of trial onset
     trialOnset = GetSecs;
     % updating the x arrays 
@@ -143,14 +154,19 @@ for trial = 1:length(data.Trial)
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
-        scaledHorizontalGrating = ((horizontalGrating+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
+        leftScaledHorizontalGrating = ((horizontalGrating+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
     
         verticalGrating = sin(xVertical*0.3);
-        scaledVerticalGrating = ((verticalGrating+1)/2);
+        leftScaledVerticalGrating = ((verticalGrating+1)/2);
     
-        scaledHorizontalGrating(:,:,2)  = alphaMask1;
-        scaledVerticalGrating(:,:,2) = alphaMask2;
-    
+        leftScaledHorizontalGrating(:,:,2)  = alphaMask1;
+        leftScaledVerticalGrating(:,:,2) = alphaMask2;
+        
+        rightScaledHorizontalGrating = leftScaledHorizontalGrating;
+        rightScaledHorizontalGrating(:,:,2) = alphaMask2;
+
+        rightScaledVerticalGrating = leftScaledVerticalGrating;
+        rightScaledVerticalGrating(:,:,2) = alphaMask1;
     
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
@@ -159,10 +175,10 @@ for trial = 1:length(data.Trial)
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
         Screen('DrawTexture', ptb.window, backGroundTexture);
     
-        tex1 = Screen('MakeTexture', ptb.window, scaledHorizontalGrating);     % create texture for stimulus
+        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
     
-        tex2 = Screen('MakeTexture', ptb.window, scaledVerticalGrating);     % create texture for stimulus
+        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
     
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
@@ -172,10 +188,10 @@ for trial = 1:length(data.Trial)
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
         Screen('DrawTexture', ptb.window, backGroundTexture);
     
-        tex1Other = Screen('MakeTexture', ptb.window, scaledHorizontalGrating);     % create texture for stimulus
+        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
     
-        tex2Other = Screen('MakeTexture', ptb.window, scaledVerticalGrating);     % create texture for stimulus
+        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
     
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
