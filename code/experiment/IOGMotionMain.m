@@ -6,7 +6,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-Mac-Setup';
+    setUp = 'Sarah Laptop';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -119,14 +119,6 @@ end
 
 [xHorizontal, xVertical] = meshgrid(1:314);
 
-% Initialize xHorizontal as a four-dimensional variable
-fourxHorizontal = zeros(size(xHorizontal, 1), size(xHorizontal, 2), 3, 1);
-
-% Initialize xVertical as a four-dimensional variable
-fourxVertical = zeros(size(xVertical, 1), size(xVertical, 2), 3, 1);
-
-% yHorizontal = sin(xHorizontal*0.3);
-% yVertical = sin(xVertical*0.3);
 
 %% ALPHA MASKS -- MONDREAN MASKS
 
@@ -143,19 +135,25 @@ alphaMask2(:,158:end) = 1;
 
 % get a Flip for timing
 vbl = Screen('Flip',ptb.window);
+% Create 4D matrices for horizontal and vertical gratings
+fourxHorizontal = zeros(size(xHorizontal, 1), size(xHorizontal, 2), 4, 1); % putting 1 here is questionnable ?
+fourxVertical = zeros(size(xVertical, 1), size(xVertical, 2), 4, 1);
 
 for trial = 1:length(data.Trial)
     % get color indices for gratings
-    if strcmp(data.Color1, 'red')
+    if strcmp(data.Color2, 'red') % tell VP about switching data.Color1 with data.Color2
         verticalIndices = 1;
         horizontalIndices = 2;
-    elseif strcmp(data.Color1, 'green')
+    elseif strcmp(data.Color2, 'green')
         verticalIndices = 2;
         horizontalIndices = 1;
     else
         verticalIndices = 1:3;
         horizontalIndices = 1:3;
     end
+
+    fourxHorizontal = fourxHorizontal(:,:,horizontalIndices,1); % green if case was red
+    fourxVertical = fourxVertical(:,:,verticalIndices,1); % red if case was red
 
     % get timing of trial onset
     trialOnset = GetSecs;
@@ -171,22 +169,20 @@ for trial = 1:length(data.Trial)
         verticalGrating = sin(xVertical*0.3);
         leftScaledVerticalGrating = ((verticalGrating+1)/2);
     
-        leftScaledHorizontalGrating(:,:,2)  = alphaMask1;
+        leftScaledHorizontalGrating(:,:,2)  = alphaMask1; % ask about the 2 value here
         leftScaledVerticalGrating(:,:,2) = alphaMask2;
         
         rightScaledHorizontalGrating = leftScaledHorizontalGrating;
-        rightScaledHorizontalGrating(:,:,2) = alphaMask2;
+        rightScaledHorizontalGrating(:,:,2) = alphaMask2; % ?
 
         rightScaledVerticalGrating = leftScaledVerticalGrating;
-        rightScaledVerticalGrating(:,:,2) = alphaMask1;
+        rightScaledVerticalGrating(:,:,2) = alphaMask1; % ?
 
-        if strcmp(data.Color1, 'red')
-            fourxHorizontal(:,:,horizontalIndices,1) = cat(3, [1; 0; 0;], zeros(3,1));
-            fourxVertical(:,:,VerticalIndices,1) = cat(3, [0; 1; 0;], zeros(3,1));
-        elseif strcmp(data.Color1, 'green')
-            fourxHorizontal(:,:,horizontalIndices,1) = cat(3, [0; 1; 0;], zeros(3,1));
-            fourxVertical(:,:,verticalIndices,1) = cat(3, [0; 1; 0;], zeros(3,1));
-        end
+        leftScaledHorizontalGrating = fourxHorizontal;
+        leftScaledVerticalGrating = fourxVertical;
+        rightScaledHorizontalGrating = leftScaledHorizontalGrating;
+        rightScaledVerticalGrating = leftScaledVerticalGrating;
+
 
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
