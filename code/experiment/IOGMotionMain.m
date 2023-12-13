@@ -70,15 +70,76 @@ design.fixCrossCoords = [
     ];
 %% PARTICIPANT INFORMATION
 
+% Initialize participantInfo structure
+participantInfo = struct('age', [], 'gender', []);
+
 % Collect participant information
 participantInfo.age = input('Enter your age: ');
-participantInfo.gender = input('Enter your gender: ', 's');
 
-% Get subject number from user input
-subjectNumber = input('Enter subject number: ');
+% Get gender from user input (1 for male, 2 for female)
 
-% Generate filename based on subject number
-filename = sprintf('Subject%d_ParticipantInfo.xlsx', subjectNumber);
+while true
+    gender = input('Enter your gender (1 for male, 2 for female): ', 's');
+    
+    % Check if the input is a valid numeric value
+    if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2])
+        disp('Invalid input. Please enter 1 for male or 2 for female.');
+    else
+        participantInfo.gender = gender;
+        break;  % Exit the loop if a valid number is entered
+    end
+end
+
+if gender == 1
+    participantInfo.gender = 'male';
+elseif gender == 2
+    participantInfo.gender = 'female';
+else
+    error('Invalid gender code. Please enter 1 for male or 2 for female.');
+end
+while true
+    subjectNumber = input('Enter subject number: ', 's');  % Read input as a string
+    
+    % Check if the input is a valid numeric value
+    if isempty(str2double(subjectNumber)) % checks if the entered string cannot be converted to a numeric value.
+        disp('Invalid input. Please enter a valid numeric value for the subject number.');
+    else
+        subjectNumber = str2double(subjectNumber);  % Convert the valid input to a number
+        break;  % Exit the loop if a valid number is entered
+    end
+end
+
+% Create a folder named 'data' for the subjects
+folderName = fullfile('data', sprintf('Subject%d', subjectNumber)); % make sure this is similar to the Brain imaging Data Structure
+
+if exist(folderName, 'dir')
+    % Folder already exists, ask for confirmation
+    userResponse = input('Warning: Folder for this subject already exists. Do you want to proceed? (yes/no): ', 's');
+    
+    if ~strcmpi(userResponse, 'no')
+        % User doesn't want to proceed, exit the program
+        error('User chose not to proceed. Exiting.');
+    end
+else
+    % Folder doesn't exist, create it
+    mkdir(folderName);
+end
+
+% Check if CSV file already exists
+csvFileName = fullfile(folderName, 'ParticipantInfo.csv');
+if exist(csvFileName, 'file')
+    % CSV file already exists, ask for confirmation
+    userResponse = input('Warning: CSV file for this subject already exists. Do you want to proceed? (yes/no): ', 's');
+    
+    if ~strcmpi(userResponse, 'no')
+        % User doesn't want to proceed, exit the program
+        error('User chose not to proceed. Exiting.');
+    end
+end
+
+% Save participant information to CSV file
+writetable(struct2table(participantInfo), csvFileName);
+
 
 %% INSTRUCTIONS:
 
