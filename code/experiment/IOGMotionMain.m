@@ -26,6 +26,7 @@ end
 design = getInstructions();
 % the scenario determines the type(s) of low level cues for interocular
 % grouping:
+
 % 1: only orientation - no motion, no color
 % 2: orientation and color - no motion
 % 3: orientation and motion - no color
@@ -119,7 +120,6 @@ end
 
 [xHorizontal, xVertical] = meshgrid(1:314);
 
-
 %% ALPHA MASKS -- MONDREAN MASKS
 
 alphaMask1  = zeros(size(xHorizontal));
@@ -135,9 +135,15 @@ alphaMask2(:,158:end) = 1;
 
 % get a Flip for timing
 vbl = Screen('Flip',ptb.window);
+
 % Create 4D matrices for horizontal and vertical gratings
-fourxHorizontal = zeros(size(xHorizontal, 1), size(xHorizontal, 2), 4, 1); % putting 1 here is questionnable ?
+% figure out issue with the zeros and grating formation here.
+fourxHorizontal = zeros(size(xHorizontal, 1), size(xHorizontal, 2), 4);
 fourxVertical = zeros(size(xVertical, 1), size(xVertical, 2), 4, 1);
+yHorizontal = sin(fourxHorizontal);
+yHorizontal = ((yHorizontal+1)/2);
+yVertical = sin(fourxVertical);
+yVertical = ((yVertical+1)/2);
 
 for trial = 1:length(data.Trial)
     % get color indices for gratings
@@ -152,36 +158,36 @@ for trial = 1:length(data.Trial)
         horizontalIndices = 1:3;
     end
 
-    fourxHorizontal = fourxHorizontal(:,:,horizontalIndices,1); % green if case was red
-    fourxVertical = fourxVertical(:,:,verticalIndices,1); % red if case was red
 
     % get timing of trial onset
     trialOnset = GetSecs;
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
-        xHorizontal = xHorizontal + data.Motion1(trial);
-        xVertical = xVertical + data.Motion2(trial);
+        fourxHorizontal = fourxHorizontal + data.Motion1(trial);
+        fourxVertical = fourxVertical + data.Motion2(trial);
     
         % TODO (VP): set factor for sinus wave as a variable 
-        horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
+        horizontalGrating = sin(fourxHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
         leftScaledHorizontalGrating = ((horizontalGrating+1)/2); % normalizes value range from 0 to 1 instead of -1 to 1
     
-        verticalGrating = sin(xVertical*0.3);
+        verticalGrating = sin(fourxVertical*0.3);
         leftScaledVerticalGrating = ((verticalGrating+1)/2);
+
+        leftScaledHorizontalGrating(:,:,horizontalIndices) = yHorizontal(:,:,horizontalIndices);
+        leftScaledVerticalGrating(:,:,verticalIndices) = yVertical(:,:,verticalIndices);
+        rightScaledVerticalGrating(:,:,verticalIndices) = leftScaledVerticalGrating(:,:,verticalIndices);
+        rightScaledHorizontalGrating(:,:,horizontalIndices) = leftScaledHorizontalGrating(:,:,horizontalIndices);
+
     
-        leftScaledHorizontalGrating(:,:,2)  = alphaMask1; % ask about the 2 value here
-        leftScaledVerticalGrating(:,:,2) = alphaMask2;
+        leftScaledHorizontalGrating(:,:,4)  = alphaMask1;
+        leftScaledVerticalGrating(:,:,4) = alphaMask2;
         
         rightScaledHorizontalGrating = leftScaledHorizontalGrating;
-        rightScaledHorizontalGrating(:,:,2) = alphaMask2; % ?
+        rightScaledHorizontalGrating(:,:,4) = alphaMask2;
 
         rightScaledVerticalGrating = leftScaledVerticalGrating;
-        rightScaledVerticalGrating(:,:,2) = alphaMask1; % ?
+        rightScaledVerticalGrating(:,:,4) = alphaMask1;
 
-        leftScaledHorizontalGrating = fourxHorizontal;
-        leftScaledVerticalGrating = fourxVertical;
-        rightScaledHorizontalGrating = leftScaledHorizontalGrating;
-        rightScaledVerticalGrating = leftScaledVerticalGrating;
 
 
         %% CREATION OF STIMULI AND CLOSING SCREENS
