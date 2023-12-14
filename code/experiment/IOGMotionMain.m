@@ -110,14 +110,15 @@ while true
 end
 
 % Create a folder named 'data' for the subjects
-folderName = fullfile('data', sprintf('Subject%d', subjectNumber)); % make sure this is similar to the Brain imaging Data Structure
+folderName = fullfile('data', sprintf('sub-%02d', subjectNumber)); % 'sub-01', 'sub-02', etc.
 
 if exist(folderName, 'dir')
     % Folder already exists, ask for confirmation
     userResponse = input('Warning: Folder for this subject already exists. Do you want to proceed? (yes/no): ', 's');
     
-    if ~strcmpi(userResponse, 'no')
-        % User doesn't want to proceed, exit the program
+    if strcmpi(userResponse, 'no')
+        sca;
+        close all;
         error('User chose not to proceed. Exiting.');
     end
 else
@@ -125,20 +126,29 @@ else
     mkdir(folderName);
 end
 
-% Check if CSV file already exists
-csvFileName = fullfile(folderName, 'ParticipantInfo.csv');
-if exist(csvFileName, 'file')
-    % CSV file already exists, ask for confirmation
-    userResponse = input('Warning: CSV file for this subject already exists. Do you want to proceed? (yes/no): ', 's');
-    
-    if ~strcmpi(userResponse, 'no')
-        % User doesn't want to proceed, exit the program
-        error('User chose not to proceed. Exiting.');
-    end
-end
+% Specify the number of runs for your experiment
+numRuns = 3;  % Adjust this based on your experiment
 
-% Save participant information to CSV file
-writetable(struct2table(participantInfo), csvFileName);
+% Create CSV files for each run inside the subject folder
+for runNumber = 1:numRuns
+    runFileName = fullfile(folderName, sprintf('sub-%02d_IOG_run%d.csv', subjectNumber, runNumber));
+    
+    % Check if CSV file already exists
+    if exist(runFileName, 'file')
+        % CSV file already exists, ask for confirmation
+        userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
+            'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
+        if strcmpi(userResponse, 'no')
+            sca;
+            close all;
+            % User doesn't want to proceed, exit the program
+            error('User chose not to proceed. Exiting.');
+        end
+    end
+    
+    % Save participant information to CSV file
+    writetable(struct2table(participantInfo), runFileName);
+end
 
 
 %% INSTRUCTIONS:
