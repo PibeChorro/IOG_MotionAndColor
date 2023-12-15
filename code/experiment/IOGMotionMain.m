@@ -145,6 +145,11 @@ for runNumber = 1:numRuns
         end
     end
     
+<<<<<<< HEAD
+=======
+    % Save participant information to CSV file
+%     writetable(struct2table(participantInfo), runFileName);
+>>>>>>> ada82e4e558745e1ccbb705e53b5689496341c23
 end
 
 
@@ -318,6 +323,7 @@ end
 
 %% GET KEYBOARD RESPONSES
 
+<<<<<<< HEAD
     KbQueueStop(ptb.Keyboard2);     
     
     % the exact times of which button was pressed at which point. Cannot be
@@ -338,11 +344,29 @@ end
             get.data.timeUp = [get.data.timeUp; evt.Time];
         end
     end
+=======
+try
+    getKeyResponses_IOG()
+catch keyResponseError
+    sca;
+    close all;
+    rethrow(keyResponseError);
+
+end
+>>>>>>> ada82e4e558745e1ccbb705e53b5689496341c23
 
 %% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
 
 % Saving participant's files
 
+<<<<<<< HEAD
 writestruct(participantInfo.age, participantInfo.gender, participantInfo.ExperimentStatus, runFileName);
+=======
+if ~isfile(runFileName)
+    headers = {'SubjectNumber', 'Age', 'Gender'};
+    writetable(runFileName, headers, 'Sheet1', 'A1');
+else    
+    writetable(struct2table(participantInfo), runFileName); % Append participant information to the csv file
+>>>>>>> ada82e4e558745e1ccbb705e53b5689496341c23
 
 end
