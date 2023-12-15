@@ -145,8 +145,6 @@ for runNumber = 1:numRuns
         end
     end
     
-    % Save participant information to CSV file
-%     writetable(struct2table(participantInfo), runFileName);
 end
 
 
@@ -320,23 +318,31 @@ end
 
 %% GET KEYBOARD RESPONSES
 
-try
-    getKeyResponses_IOG()
-catch keyResponseError
-    sca;
-    close all;
-    rethrow(keyResponseError);
+    KbQueueStop(ptb.Keyboard2);     
+    
+    % the exact times of which button was pressed at which point. Cannot be
+    % preallocated because we do not know how many switches may occur
 
-end
+    get.data.idDown     = [];
+    get.data.timeDown   = [];
+    get.data.idUp       = [];
+    get.data.timeUp     = [];
+    while KbEventAvail(ptb.Keyboard2)
+        [evt, ~] = KbEventGet(ptb.Keyboard2);
+        
+        if evt.Pressed == 1 % for key presses
+            get.data.idDown   = [get.data.idDown; evt.Keycode];
+            get.data.timeDown = [get.data.timeDown; evt.Time];
+        else % for key releases
+            get.data.idUp   = [get.data.idUp; evt.Keycode];
+            get.data.timeUp = [get.data.timeUp; evt.Time];
+        end
+    end
 
 %% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
 
 % Saving participant's files
 
-if ~isfile(runFileName)
-    headers = {'SubjectNumber', 'Age', 'Gender'};
-    writetable(runFileName, headers, 'Sheet1', 'A1');
-else    
-    writetable(struct2table(participantInfo), runFileName); % Append participant information to the csv file
+writestruct(participantInfo.age, participantInfo.gender, participantInfo.ExperimentStatus, runFileName);
 
 end
