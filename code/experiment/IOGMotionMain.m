@@ -20,6 +20,7 @@ catch PTBERROR
     sca;
     rethrow(PTBERROR);
 end
+
 %% DESIGN-RELATED:
 
 % Different design-related information.
@@ -68,10 +69,11 @@ design.fixCrossCoords = [
     -design.fixCrossInPixelsX/2 design.fixCrossInPixelsX/2 0 0; ...
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
+
 %% PARTICIPANT INFORMATION
 
 % Initialize participantInfo structure
-participantInfo = struct('age', [], 'gender', []);
+participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
 
 % Collect participant information
 participantInfo.age = input('Enter your age: ');
@@ -85,18 +87,16 @@ while true
     if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2])
         disp('Invalid input. Please enter 1 for male or 2 for female.');
     else
-        participantInfo.gender = gender;
+        % Convert gender to a string representation
+        if str2double(gender) == 1
+            participantInfo.gender = 'male';
+        else
+            participantInfo.gender = 'female';
+        end
         break;  % Exit the loop if a valid number is entered
     end
 end
 
-if gender == 1
-    participantInfo.gender = 'male';
-elseif gender == 2
-    participantInfo.gender = 'female';
-else
-    error('Invalid gender code. Please enter 1 for male or 2 for female.');
-end
 while true
     subjectNumber = input('Enter subject number: ', 's');  % Read input as a string
     
@@ -108,6 +108,7 @@ while true
         break;  % Exit the loop if a valid number is entered
     end
 end
+
 
 % Create a folder named 'data' for the subjects
 folderName = fullfile('data', sprintf('sub-%02d', subjectNumber)); % 'sub-01', 'sub-02', etc.
@@ -127,7 +128,7 @@ else
 end
 
 % Specify the number of runs for your experiment
-numRuns = 3;  % Adjust this based on your experiment
+numRuns = 1;  % Adjust this based on your experiment
 
 % Create CSV files for each run inside the subject folder
 for runNumber = 1:numRuns
@@ -135,19 +136,17 @@ for runNumber = 1:numRuns
     
     % Check if CSV file already exists
     if exist(runFileName, 'file')
-        % CSV file already exists, ask for confirmation
         userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
             'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
         if strcmpi(userResponse, 'no')
             sca;
             close all;
-            % User doesn't want to proceed, exit the program
             error('User chose not to proceed. Exiting.');
         end
     end
     
     % Save participant information to CSV file
-    writetable(struct2table(participantInfo), runFileName);
+%     writetable(struct2table(participantInfo), runFileName);
 end
 
 
@@ -159,6 +158,7 @@ try
     Experiment_Instructions(ptb);
 catch instructionsError
     sca;
+    close all;
     rethrow(instructionsError);
 end
 
@@ -184,6 +184,18 @@ catch readDataError
     sca;
     rethrow(readDataError);
 end
+
+%% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
+
+%% Stop and remove events in queue
+%     KbQueueStop(ptb.Keyboard2);
+%     KbEventFlush(ptb.Keyboard2);
+    KbQueueStop(ptb.Keyboard1);
+    KbEventFlush(ptb.Keyboard1);
+    
+    % restart KbQueues
+%     KbQueueStart(ptb.Keyboard2);
+    KbQueueStart(ptb.Keyboard1); % In this case, subjects
 
 %% REPETITION MATRIX FOR MOTION SIMULATION
 
@@ -306,17 +318,25 @@ for trial = 1:length(data.Trial)
     WaitSecs(design.ITI)
 end
 
+%% GET KEYBOARD RESPONSES
+
+try
+    getKeyResponses_IOG()
+catch keyResponseError
+    sca;
+    close all;
+    rethrow(keyResponseError);
+
+end
 
 %% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
 
-% Saving participant’s mat files
+% Saving participant's files
 
-% if ~isfile(filename)
-%     headers = {'SubjectNumber', 'Age', 'Gender'};
-%     xlswrite(filename, headers, 'Sheet1', 'A1');
-% end
-% 
-% % Append participant information to the Excel file
-% xlswrite(filename, [subjectNumber, participantInfo.age, participantInfo.gender], 'Sheet1', 'A2');
+if ~isfile(runFileName)
+    headers = {'SubjectNumber', 'Age', 'Gender'};
+    writetable(runFileName, headers, 'Sheet1', 'A1');
+else    
+    writetable(struct2table(participantInfo), runFileName); % Append participant information to the csv file
 
 end
