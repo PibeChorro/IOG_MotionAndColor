@@ -7,7 +7,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-Mac-Setup';
+    setUp = 'Sarah Laptop';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -131,6 +131,7 @@ end
 numRuns = 1;  % Adjust this based on your experiment
 
 % Create CSV files for each run inside the subject folder
+% Create CSV files for each run inside the subject folder
 for runNumber = 1:numRuns
     runFileName = fullfile(folderName, sprintf('sub-%02d_IOG_run%d.csv', subjectNumber, runNumber));
     
@@ -145,11 +146,9 @@ for runNumber = 1:numRuns
         end
     end
     
-<<<<<<< HEAD
-=======
-    % Save participant information to CSV file
-%     writetable(struct2table(participantInfo), runFileName);
->>>>>>> ada82e4e558745e1ccbb705e53b5689496341c23
+    % Write combined data to the CSV file
+    writetable(struct2table(participantInfo), runFileName);
+    
 end
 
 
@@ -193,12 +192,14 @@ end
 %% Stop and remove events in queue
 %     KbQueueStop(ptb.Keyboard2);
 %     KbEventFlush(ptb.Keyboard2);
-    KbQueueStop(ptb.Keyboard1);
-    KbEventFlush(ptb.Keyboard1);
-    
-    % restart KbQueues
-%     KbQueueStart(ptb.Keyboard2);
-    KbQueueStart(ptb.Keyboard1); % In this case, subjects
+
+    % Stop and remove events in queue for Keyboard2
+    KbQueueStop(ptb.Keyboard2);
+    KbEventFlush(ptb.Keyboard2);
+    KbQueueCreate(ptb.Keyboard2);
+
+    % Start the queue for Keyboard2
+    KbQueueStart(ptb.Keyboard2);
 
 %% REPETITION MATRIX FOR MOTION SIMULATION
 
@@ -323,50 +324,44 @@ end
 
 %% GET KEYBOARD RESPONSES
 
-<<<<<<< HEAD
-    KbQueueStop(ptb.Keyboard2);     
+% Ensure the keyboard queue is stopped
+KbQueueStop(ptb.Keyboard2);
+
+% Initialize data structure to store keyboard events
+get.data = struct('idDown', [], 'timeDown', [], 'idUp', [], 'timeUp', []);
+
+% Inside the loop where you process key events
+while KbEventAvail(ptb.Keyboard2)
+    [evt, ~] = KbEventGet(ptb.Keyboard2);
     
-    % the exact times of which button was pressed at which point. Cannot be
-    % preallocated because we do not know how many switches may occur
-
-    get.data.idDown     = [];
-    get.data.timeDown   = [];
-    get.data.idUp       = [];
-    get.data.timeUp     = [];
-    while KbEventAvail(ptb.Keyboard2)
-        [evt, ~] = KbEventGet(ptb.Keyboard2);
+    if evt.Pressed == 1 % for key presses
+        % Print the interpreted key value for debugging
+        keyName = KbName(evt.Keycode);
         
-        if evt.Pressed == 1 % for key presses
-            get.data.idDown   = [get.data.idDown; evt.Keycode];
-            get.data.timeDown = [get.data.timeDown; evt.Time];
-        else % for key releases
-            get.data.idUp   = [get.data.idUp; evt.Keycode];
-            get.data.timeUp = [get.data.timeUp; evt.Time];
-        end
+        % Remove special characters associated with the Shift key
+        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
+        
+        disp(['Pressed key: ' keyName]);
+            
+        get.data.idDown   = [get.data.idDown; keyName];
+        get.data.timeDown = [get.data.timeDown; GetSecs];
+    else % for key releases
+        % Print the interpreted key value for debugging
+        keyName = KbName(evt.Keycode);
+        
+        % Remove special characters associated with the Shift key
+        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
+        
+        disp(['Released key: ' keyName]);
+            
+        get.data.idUp   = [get.data.idUp; keyName];
+        get.data.timeUp = [get.data.timeUp; GetSecs];
     end
-=======
-try
-    getKeyResponses_IOG()
-catch keyResponseError
-    sca;
-    close all;
-    rethrow(keyResponseError);
-
 end
->>>>>>> ada82e4e558745e1ccbb705e53b5689496341c23
 
-%% SAVING PARTICIPANT FILES ACCORDING TO THE RUN NUMBER:
-
-% Saving participant's files
-
-<<<<<<< HEAD
-writestruct(participantInfo.age, participantInfo.gender, participantInfo.ExperimentStatus, runFileName);
-=======
-if ~isfile(runFileName)
-    headers = {'SubjectNumber', 'Age', 'Gender'};
-    writetable(runFileName, headers, 'Sheet1', 'A1');
-else    
-    writetable(struct2table(participantInfo), runFileName); % Append participant information to the csv file
->>>>>>> ada82e4e558745e1ccbb705e53b5689496341c23
+    % Save keyboard events to the CSV file
+    keyboardFileName = fullfile(folderName, sprintf('sub-%02d_IOG_keyboard.csv', subjectNumber));
+    keyboardData = table(get.data.idDown, get.data.timeDown, get.data.idUp, get.data.timeUp, 'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime'});
+    writetable(keyboardData, keyboardFileName);
 
 end

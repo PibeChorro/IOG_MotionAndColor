@@ -2,7 +2,7 @@ function getKeyResponses_IOG(~)
 
     setUp = 'CIN-Mac-Setup';
 
-    ptb = PTBSettingsIOGMotion(setUp);
+%     ptb = PTBSettingsIOGMotion(setUp);
 
 %     try
 %         ptb = PTBSettingsIOGMotion(setUp);
@@ -36,4 +36,5 @@ function getKeyResponses_IOG(~)
             get.data.timeUp = [get.data.timeUp; evt.Time];
         end
     end
+    disp(['Key Down: ', num2str(evt.Keycode)]);
 end
