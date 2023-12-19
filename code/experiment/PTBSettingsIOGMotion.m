@@ -1,6 +1,6 @@
 function ptb = PTBSettingsIOGMotion(setUp)
 if nargin < 1 || isempty(setUp)
-    setUp = 'Sarah Laptop';
+    setUp = 'CIN-Mac-Setup';
 end
 % Decide which set up to use
 ptb.SetUp = setUp;

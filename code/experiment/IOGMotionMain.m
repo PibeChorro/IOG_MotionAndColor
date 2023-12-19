@@ -7,19 +7,16 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'Sarah Laptop';
+    setUp = 'CIN-Mac-Setup';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
 
 % Opening psychtoolbox function ptb.
 
-try
-    ptb = PTBSettingsIOGMotion(setUp);
-catch PTBERROR
-    sca;
-    rethrow(PTBERROR);
-end
+
+ ptb = PTBSettingsIOGMotion(setUp);
+
 
 %% DESIGN-RELATED:
 
@@ -70,6 +67,11 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
+%% DEFINE PTB KEYS STRUCT FOR KEYBOARD RESPONSE DATA
+
+ptb.Keys.monocular = ptb.Keys.left;
+ptb.Keys.interocular = ptb.Keys.right;
+
 %% PARTICIPANT INFORMATION
 
 % Initialize participantInfo structure
@@ -81,17 +83,19 @@ participantInfo.age = input('Enter your age: ');
 % Get gender from user input (1 for male, 2 for female)
 
 while true
-    gender = input('Enter your gender (1 for male, 2 for female): ', 's');
+    gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
     
     % Check if the input is a valid numeric value
-    if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2])
-        disp('Invalid input. Please enter 1 for male or 2 for female.');
+    if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2, 3])
+        disp('Invalid input. Please enter 1 for male, 2 for female or 3 for other');
     else
         % Convert gender to a string representation
         if str2double(gender) == 1
             participantInfo.gender = 'male';
-        else
+        elseif str2double(gender) == 2
             participantInfo.gender = 'female';
+        else
+            participantInfo.gender = 'other';
         end
         break;  % Exit the loop if a valid number is entered
     end
@@ -109,6 +113,13 @@ while true
     end
 end
 
+if mod(subjectNumber, 2) == 0 % if subjectNumber is divisible by 2 with 0 remainder (aka number is even)
+    ptb.Keys.left = ptb.Keys.monocular;
+    ptb.Keys.right = ptb.Keys.interocular;
+else % if subjectNumber is not divisible without 0 remainders (aka number is odd)
+    ptb.Keys.right = ptb.Keys.monocular; 
+    ptb.Keys.left = ptb.Keys.interocular;
+end
 
 % Create a folder named 'data' for the subjects
 folderName = fullfile('data', sprintf('sub-%02d', subjectNumber)); % 'sub-01', 'sub-02', etc.
@@ -133,7 +144,7 @@ numRuns = 1;  % Adjust this based on your experiment
 % Create CSV files for each run inside the subject folder
 % Create CSV files for each run inside the subject folder
 for runNumber = 1:numRuns
-    runFileName = fullfile(folderName, sprintf('sub-%02d_IOG_run%d.csv', subjectNumber, runNumber));
+    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
     
     % Check if CSV file already exists
     if exist(runFileName, 'file')
@@ -322,6 +333,7 @@ for trial = 1:length(data.Trial)
     WaitSecs(design.ITI)
 end
 
+
 %% GET KEYBOARD RESPONSES
 
 % Ensure the keyboard queue is stopped
@@ -333,35 +345,53 @@ get.data = struct('idDown', [], 'timeDown', [], 'idUp', [], 'timeUp', []);
 % Inside the loop where you process key events
 while KbEventAvail(ptb.Keyboard2)
     [evt, ~] = KbEventGet(ptb.Keyboard2);
-    
+
     if evt.Pressed == 1 % for key presses
         % Print the interpreted key value for debugging
         keyName = KbName(evt.Keycode);
-        
+
         % Remove special characters associated with the Shift key
         keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
-        
+
         disp(['Pressed key: ' keyName]);
-            
-        get.data.idDown   = [get.data.idDown; keyName];
+
+        % Convert keyName to a cell array before concatenation
+        get.data.idDown   = [get.data.idDown; {keyName}];
         get.data.timeDown = [get.data.timeDown; GetSecs];
+
     else % for key releases
         % Print the interpreted key value for debugging
         keyName = KbName(evt.Keycode);
-        
+
         % Remove special characters associated with the Shift key
         keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
-        
+
         disp(['Released key: ' keyName]);
-            
-        get.data.idUp   = [get.data.idUp; keyName];
+
+        % Convert keyName to a cell array before concatenation
+        get.data.idUp   = [get.data.idUp; {keyName}];
         get.data.timeUp = [get.data.timeUp; GetSecs];
     end
 end
 
-    % Save keyboard events to the CSV file
-    keyboardFileName = fullfile(folderName, sprintf('sub-%02d_IOG_keyboard.csv', subjectNumber));
-    keyboardData = table(get.data.idDown, get.data.timeDown, get.data.idUp, get.data.timeUp, 'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime'});
-    writetable(keyboardData, keyboardFileName);
+% Ensure that both idDown and idUp have the same length
+minLength = min(length(get.data.idDown), length(get.data.idUp));
+get.data.idDown = get.data.idDown(1:minLength);
+get.data.idUp = get.data.idUp(1:minLength);
+
+% Determine eye condition based on subjectNumber
+% Save keyboard events to the CSV file
+keyboardFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_keyboard_data.csv', subjectNumber));
+keyboardData = table(get.data.idDown, get.data.timeDown - trialOnset, get.data.idUp, get.data.timeUp - trialOnset, get.data.eyeCondition, ...
+                      'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime'});
+writetable(keyboardData, keyboardFileName);
+
+try
+    formatResponses(get,ptb)
+catch KEYBOARDRESPONSERROR
+    close all;
+    sca;
+    rethrow(KEYBOARDRESPONSERROR);
+end
 
 end
