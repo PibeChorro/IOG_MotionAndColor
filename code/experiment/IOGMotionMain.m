@@ -33,7 +33,7 @@ design = getInstructions();
 
 design.stimulusPresentationTime = 5 - ptb.ifi/2;
 design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.2;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.contrast                 = 0.5;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
@@ -245,7 +245,12 @@ xVertical(:,:,4) = xVertical(:,:,1);
 % get a Flip for timing
 vbl = Screen('Flip',ptb.window);
 
-for trial = 1:length(data.Trial)
+shuffledTrial = randperm(length(data.Trial));
+
+for idx = 1:length(data.Trial)
+
+    trial = shuffledTrial(idx);
+
     % get color indices for gratings
     if strcmp(data.Color2(trial), 'red')
         turnoffIndicesVertical = 2:4;
