@@ -33,8 +33,8 @@ design = getInstructions();
 
 design.stimulusPresentationTime = 5 - ptb.ifi/2;
 design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.5;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
-design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
+design.contrast                 = 0.6;   % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.stepSize                 = 0.25;  % step size for motion trials to reduce/increase velocity
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
@@ -75,7 +75,7 @@ ptb.Keys.interocular = ptb.Keys.right;
 %% PARTICIPANT INFORMATION
 
 % Initialize participantInfo structure
-participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
+participantInfo = struct('age', [], 'gender', []);
 
 % Collect participant information
 participantInfo.age = input('Enter your age: ');
@@ -131,7 +131,7 @@ if exist(folderName, 'dir')
     if strcmpi(userResponse, 'no')
         sca;
         close all;
-        error('User chose not to proceed. Exiting.');
+        error('User chose not to proceed. Exiting...');
     end
 else
     % Folder doesn't exist, create it
@@ -153,7 +153,7 @@ for runNumber = 1:numRuns
         if strcmpi(userResponse, 'no')
             sca;
             close all;
-            error('User chose not to proceed. Exiting.');
+            error('User chose not to proceed. Exiting...');
         end
     end
     
@@ -161,7 +161,6 @@ for runNumber = 1:numRuns
     writetable(struct2table(participantInfo), runFileName);
     
 end
-
 
 %% INSTRUCTIONS:
 
@@ -247,9 +246,13 @@ vbl = Screen('Flip',ptb.window);
 
 shuffledTrial = randperm(length(data.Trial));
 
+completedConditions = 0;
+
 for idx = 1:length(data.Trial)
 
     trial = shuffledTrial(idx);
+
+    completedConditions = completedConditions + 1;
 
     % get color indices for gratings
     if strcmp(data.Color2(trial), 'red')
@@ -261,6 +264,12 @@ for idx = 1:length(data.Trial)
     else
         turnoffIndicesVertical = 4;
         turnoffIndicesHorizontal = 4;
+    end
+
+    if completedConditions == length(data.Trial)
+        participantInfo.ExperimentStatus = 'Completed';
+    else
+        participantInfo.ExperimentStatus = 'Not Completed';
     end
 
     % get timing of trial onset
@@ -288,7 +297,6 @@ for idx = 1:length(data.Trial)
        
         rightScaledHorizontalGrating(:,:,4) = alphaMask2;
         rightScaledVerticalGrating(:,:,4) = alphaMask1;
-
 
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
@@ -352,30 +360,38 @@ while KbEventAvail(ptb.Keyboard2)
     [evt, ~] = KbEventGet(ptb.Keyboard2);
 
     if evt.Pressed == 1 % for key presses
-        % Print the interpreted key value for debugging
-        keyName = KbName(evt.Keycode);
+        % Check if the pressed key is a numeric key
+        if ismember(evt.Keycode, [KbName('1!'), KbName('2@'), KbName('3#'), KbName('4$'), KbName('5%'), ...
+                                  KbName('6^'), KbName('7&'), KbName('8*'), KbName('9('), KbName('0)')])
+            % Record the interpreted key value for debugging
+            keyName = KbName(evt.Keycode);
 
-        % Remove special characters associated with the Shift key
-        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
+            % Remove special characters associated with the Shift key
+            keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
-        disp(['Pressed key: ' keyName]);
+            disp(['Pressed key: ' keyName]);
 
-        % Convert keyName to a cell array before concatenation
-        get.data.idDown   = [get.data.idDown; {keyName}];
-        get.data.timeDown = [get.data.timeDown; GetSecs];
+            % Convert keyName to a cell array before concatenation
+            get.data.idDown   = [get.data.idDown; {keyName}];
+            get.data.timeDown = [get.data.timeDown; GetSecs];
+        end
 
     else % for key releases
-        % Print the interpreted key value for debugging
-        keyName = KbName(evt.Keycode);
+        % Check if the released key is a numeric key
+        if ismember(evt.Keycode, [KbName('1!'), KbName('2@'), KbName('3#'), KbName('4$'), KbName('5%'), ...
+                                  KbName('6^'), KbName('7&'), KbName('8*'), KbName('9('), KbName('0)')])
+            % Record the interpreted key value for debugging
+            keyName = KbName(evt.Keycode);
 
-        % Remove special characters associated with the Shift key
-        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
+            % Remove special characters associated with the Shift key
+            keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
-        disp(['Released key: ' keyName]);
+            disp(['Released key: ' keyName]);
 
-        % Convert keyName to a cell array before concatenation
-        get.data.idUp   = [get.data.idUp; {keyName}];
-        get.data.timeUp = [get.data.timeUp; GetSecs];
+            % Convert keyName to a cell array before concatenation
+            get.data.idUp   = [get.data.idUp; {keyName}];
+            get.data.timeUp = [get.data.timeUp; GetSecs];
+        end
     end
 end
 
@@ -384,11 +400,11 @@ minLength = min(length(get.data.idDown), length(get.data.idUp));
 get.data.idDown = get.data.idDown(1:minLength);
 get.data.idUp = get.data.idUp(1:minLength);
 
-% Determine eye condition based on subjectNumber
 % Save keyboard events to the CSV file
 keyboardFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_keyboard_data.csv', subjectNumber));
 keyboardData = table(get.data.idDown, get.data.timeDown - trialOnset, get.data.idUp, get.data.timeUp - trialOnset, ...
-                      'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime'});
+                      repmat({participantInfo.ExperimentStatus}, length(get.data.idDown), 1), ...
+                      'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime', 'ExperimentStatus'});
 writetable(keyboardData, keyboardFileName);
 
 try
