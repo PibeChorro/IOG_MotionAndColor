@@ -33,7 +33,7 @@ design = getInstructions();
 
 design.stimulusPresentationTime = 5 - ptb.ifi/2;
 design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.6;   % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.contrast                 = 0.4;   % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.25;  % step size for motion trials to reduce/increase velocity
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
@@ -80,7 +80,7 @@ participantInfo = struct('age', [], 'gender', []);
 % Collect participant information
 participantInfo.age = input('Enter your age: ');
 
-% Get gender from user input (1 for male, 2 for female)
+% Get gender from user input (1 for male, 2 for female, 3 for other)
 
 while true
     gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
@@ -122,8 +122,7 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
 end
 
 % Create a folder named 'data' for the subjects
-folderName = fullfile('data', sprintf('sub-%02d', subjectNumber)); % 'sub-01', 'sub-02', etc.
-
+folderName = fullfile('data', sprintf('sub-%02d', subjectNumber));
 if exist(folderName, 'dir')
     % Folder already exists, ask for confirmation
     userResponse = input('Warning: Folder for this subject already exists. Do you want to proceed? (yes/no): ', 's');
@@ -142,7 +141,6 @@ end
 numRuns = 1;  % Adjust this based on your experiment
 
 % Create CSV files for each run inside the subject folder
-% Create CSV files for each run inside the subject folder
 for runNumber = 1:numRuns
     runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
     
@@ -156,10 +154,20 @@ for runNumber = 1:numRuns
             error('User chose not to proceed. Exiting...');
         end
     end
-    
-    % Write combined data to the CSV file
-    writetable(struct2table(participantInfo), runFileName);
-    
+
+    % Create a structure to hold data for all runs
+%     runData = struct('Trial', {}, 'Motion', {}, 'Orientation', {}, 'Color', {});
+
+    % Initialize data for this run
+%     runData.Trials = 1:4;
+%     runData.Motion = ['Upward', 'Downward', 'Leftward','Rightward'];
+%     runData.Color = ['black','green','red'];
+%     runData.Orientation = ['horizontal', 'vertical'];
+
+    % Save data for this run to a CSV file
+    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
+    writetable(struct2table(runData), runFileName);
+
 end
 
 %% INSTRUCTIONS:
@@ -189,6 +197,10 @@ end
 %% DATA READING:
 
 % Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
+
+% This needs to be changed to be based on subject-specific files with
+% different combinations of conditions unlike the four Run excel files we
+% have now.
 
 try
     data = readtable('Run_1.xlsx');
@@ -231,7 +243,6 @@ alphaMask2(:,158:end) = 1;
 
 % Introducing the different conditions of the experiment along with assigned variables
 % Create 4D matrices for horizontal and vertical gratings
-% figure out issue with the zeros and grating formation here
 
 xHorizontal(:,:,2) = xHorizontal(:,:,1);
 xHorizontal(:,:,3) = xHorizontal(:,:,1);
@@ -246,7 +257,7 @@ vbl = Screen('Flip',ptb.window);
 
 shuffledTrial = randperm(length(data.Trial));
 
-completedConditions = 0;
+completedConditions = 0; % initiation of the completedConditions variable
 
 for idx = 1:length(data.Trial)
 
@@ -274,6 +285,7 @@ for idx = 1:length(data.Trial)
 
     % get timing of trial onset
     trialOnset = GetSecs;
+
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
         xHorizontal = xHorizontal + data.Motion1(trial) * design.stepSize;
@@ -281,7 +293,7 @@ for idx = 1:length(data.Trial)
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
-        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;            % normalizes value range from 0 to 1 instead of -1 to 1
+        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
     
         verticalGrating = sin(xVertical*0.3);
         leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
@@ -305,10 +317,10 @@ for idx = 1:length(data.Trial)
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
         Screen('DrawTexture', ptb.window, backGroundTexture);
     
-        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
+        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);
         Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
     
-        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);    % create texture for stimulus
+        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);
         Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
     
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
@@ -318,10 +330,10 @@ for idx = 1:length(data.Trial)
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
         Screen('DrawTexture', ptb.window, backGroundTexture);
     
-        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
+        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);
         Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
     
-        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);     % create texture for stimulus
+        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);
         Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
     
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
@@ -334,6 +346,7 @@ for idx = 1:length(data.Trial)
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
     end
+
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
     Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
             ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
@@ -355,6 +368,7 @@ KbQueueStop(ptb.Keyboard2);
 % Initialize data structure to store keyboard events
 get.data = struct('idDown', [], 'timeDown', [], 'idUp', [], 'timeUp', []);
 
+
 % Inside the loop where you process key events
 while KbEventAvail(ptb.Keyboard2)
     [evt, ~] = KbEventGet(ptb.Keyboard2);
@@ -369,7 +383,10 @@ while KbEventAvail(ptb.Keyboard2)
             % Remove special characters associated with the Shift key
             keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
-            disp(['Pressed key: ' keyName]);
+            % Record the trial number
+            trialNumber = shuffledTrial(idx);
+
+            disp(['Pressed key: ' keyName ', Trial: ' num2str(trialNumber)]);
 
             % Convert keyName to a cell array before concatenation
             get.data.idDown   = [get.data.idDown; {keyName}];
@@ -380,13 +397,17 @@ while KbEventAvail(ptb.Keyboard2)
         % Check if the released key is a numeric key
         if ismember(evt.Keycode, [KbName('1!'), KbName('2@'), KbName('3#'), KbName('4$'), KbName('5%'), ...
                                   KbName('6^'), KbName('7&'), KbName('8*'), KbName('9('), KbName('0)')])
+
             % Record the interpreted key value for debugging
             keyName = KbName(evt.Keycode);
 
             % Remove special characters associated with the Shift key
             keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
-            disp(['Released key: ' keyName]);
+            % Record the trial number
+            trialNumber = shuffledTrial(idx);
+
+            disp(['Released key: ' keyName ', Trial: ' num2str(trialNumber)]);
 
             % Convert keyName to a cell array before concatenation
             get.data.idUp   = [get.data.idUp; {keyName}];
@@ -405,14 +426,14 @@ keyboardFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_keyboard_data
 keyboardData = table(get.data.idDown, get.data.timeDown - trialOnset, get.data.idUp, get.data.timeUp - trialOnset, ...
                       repmat({participantInfo.ExperimentStatus}, length(get.data.idDown), 1), ...
                       'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime', 'ExperimentStatus'});
+
 writetable(keyboardData, keyboardFileName);
 
 try
     formatResponses(get,ptb)
-catch KEYBOARDRESPONSERROR
+catch KeyboardResponseError
     close all;
     sca;
-    rethrow(KEYBOARDRESPONSERROR);
+    rethrow(KeyboardResponseError);
 end
-
 end
