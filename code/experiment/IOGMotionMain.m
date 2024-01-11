@@ -81,13 +81,12 @@ participantInfo = struct('age', [], 'gender', []);
 participantInfo.age = input('Enter your age: ');
 
 % Get gender from user input (1 for male, 2 for female, 3 for other)
-
 while true
     gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
     
     % Check if the input is a valid numeric value
     if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2, 3])
-        disp('Invalid input. Please enter 1 for male, 2 for female or 3 for other');
+        disp('Invalid input. Please enter 1 for male, 2 for female, or 3 for other');
     else
         % Convert gender to a string representation
         if str2double(gender) == 1
@@ -121,93 +120,106 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.left = ptb.Keys.interocular;
 end
 
-% Create a folder named 'data' for the subjects
-folderName = fullfile('data', sprintf('sub-%02d', subjectNumber));
-if exist(folderName, 'dir')
-    % Folder already exists, ask for confirmation
-    userResponse = input('Warning: Folder for this subject already exists. Do you want to proceed? (yes/no): ', 's');
-    
-    if strcmpi(userResponse, 'no')
-        sca;
-        close all;
-        error('User chose not to proceed. Exiting...');
-    end
-else
-    % Folder doesn't exist, create it
-    mkdir(folderName);
+% Specify the number of runs for your experiment
+
+numRuns = 8;
+
+% Define experimental conditions
+conditions = {
+    'Rightward', 'Red', 'Horizontal';
+    'Leftward', 'Green', 'Vertical';
+    'No Motion', 'Black', 'Horizontal';
+    'No Motion', 'Red', 'Vertical';
+    'Leftward', 'Red', 'Horizontal';
+    'Rightward', 'Black', 'Vertical';
+    'No Motion', 'Green', 'Vertical';
+    'Rightward', 'Green', 'Horizontal';
+    'Leftward', 'Green', 'Horizontal';
+    'Rightward', 'Black', 'Vertical';
+    'No Motion', 'Red', 'Vertical';
+    'No Motion', 'Black', 'Horizontal';
+    'Rightward', 'Red', 'Vertical';
+    'Leftward', 'Green', 'Horizontal';
+    'No Motion', 'Green', 'Horizontal';
+    'Leftward', 'Black', 'Vertical';
+    'Rightward', 'Green', 'Vertical';
+    'Leftward', 'Black', 'Horizontal';
+    'No Motion', 'Black', 'Vertical';
+    'No Motion', 'Red', 'Horizontal';
+    'Leftward', 'Red', 'Vertical';
+    'Rightward', 'Green', 'Horizontal';
+    'No Motion', 'Green', 'Vertical';
+    'Rightward', 'Red', 'Horizontal';
+    'Leftward', 'Red', 'Vertical';
+    'Rightward', 'Green', 'Horizontal';
+    'No Motion', 'Green', 'Vertical';
+    'No Motion', 'Black', 'Horizontal';
+    'Leftward', 'Black', 'Vertical';
+    'Rightward', 'Red', 'Horizontal';
+    'No Motion', 'Red', 'Horizontal';
+    'Leftward', 'Green', 'Vertical'
+};
+
+% Calculate the number of conditions per run
+conditionsPerRun = length(conditions) / numRuns;
+
+% Check if the number of conditions per run is an integer
+if conditionsPerRun ~= round(conditionsPerRun)
+    error('The number of conditions is not divisible evenly by the number of runs.');
 end
 
-% Specify the number of runs for your experiment
-numRuns = 1;  % Adjust this based on your experiment
+% Reshape conditions into a matrix with rows representing runs and columns representing conditions
+conditionsMatrix = reshape(conditions, conditionsPerRun, []).';
 
-% Create CSV files for each run inside the subject folder
+% Initialize a cell array to store the selected conditions for each run
+selectedConditions = cell(numRuns, 1);
+
+% Loop through each run
 for runNumber = 1:numRuns
-    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
+    % Randomly permute the conditions for the current run
+    shuffledConditions = conditionsMatrix(runNumber, randperm(conditionsPerRun));
     
-    % Check if CSV file already exists
-    if exist(runFileName, 'file')
-        userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
-            'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
-        if strcmpi(userResponse, 'no')
-            sca;
-            close all;
-            error('User chose not to proceed. Exiting...');
-        end
-    end
-
-    % Create a structure to hold data for all runs
-%     runData = struct('Trial', {}, 'Motion', {}, 'Orientation', {}, 'Color', {});
-
-    % Initialize data for this run
-%     runData.Trials = 1:4;
-%     runData.Motion = ['Upward', 'Downward', 'Leftward','Rightward'];
-%     runData.Color = ['black','green','red'];
-%     runData.Orientation = ['horizontal', 'vertical'];
+    % Add the shuffled conditions to the cell array
+    selectedConditions{runNumber} = shuffledConditions;
+    
+    % Save the selected conditions to CSV files
+    folderName = 'data';  % Adjust this as needed
 
     % Save data for this run to a CSV file
-    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
-    writetable(struct2table(runData), runFileName);
-
-end
+    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%02d.csv', subjectNumber, runNumber));
+    writetable(selectedConditions{runNumber}, runFileName);
+    
+    
 
 %% INSTRUCTIONS:
-
-% Experimental instructions with texts (using experimental function from another mat script).
-
-try
-    Experiment_Instructions(ptb);
-catch instructionsError
-    sca;
-    close all;
-    rethrow(instructionsError);
-end
+    
+    % Experimental instructions with texts (using experimental function from another mat script).
+    
+    try
+        Experiment_Instructions(ptb);
+    catch instructionsError
+        sca;
+        close all;
+        rethrow(instructionsError);
+    end
 
 
 %% FUSION TEST:
 
 % Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
-
-try
-    alignFusion(ptb, design);
-catch alignFusionError
-    sca;
-    rethrow(alignFusionError);
-end
+    
+    try
+        alignFusion(ptb, design);
+    catch alignFusionError
+        sca;
+        rethrow(alignFusionError);
+    end
 
 %% DATA READING:
 
-% Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
+% Reading the CSV files for each run based on subject-specific files.
 
-% This needs to be changed to be based on subject-specific files with
-% different combinations of conditions unlike the four Run excel files we
-% have now.
-
-try
-    data = readtable('Run_1.xlsx');
-catch readDataError
-    sca;
-    rethrow(readDataError);
-end
+    data = readtable(runFileName);
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
@@ -223,73 +235,72 @@ end
     % Start the queue for Keyboard2
     KbQueueStart(ptb.Keyboard2);
 
-%% REPETITION MATRIX FOR MOTION SIMULATION
-
-% TODO (VP): change limit of array from arbitrary 314 to a well thought
-% through value
-
-[xHorizontal, xVertical] = meshgrid(1:314);
-
-%% ALPHA MASKS -- MONDREAN MASKS
-
-alphaMask1  = zeros(size(xHorizontal));
-alphaMask2 = alphaMask1;
-
-% TODO (VP): make alpha mask values dynamic
-alphaMask1(:,1:157) = 1;
-alphaMask2(:,158:end) = 1;
-
-%%  INTRODUCTION OF THE CASES/CONDITIONS:
-
-% Introducing the different conditions of the experiment along with assigned variables
-% Create 4D matrices for horizontal and vertical gratings
-
-xHorizontal(:,:,2) = xHorizontal(:,:,1);
-xHorizontal(:,:,3) = xHorizontal(:,:,1);
-xHorizontal(:,:,4) = xHorizontal(:,:,1);
-
-xVertical(:,:,2) = xVertical(:,:,1);
-xVertical(:,:,3) = xVertical(:,:,1);
-xVertical(:,:,4) = xVertical(:,:,1);
-
-% get a Flip for timing
-vbl = Screen('Flip',ptb.window);
-
-shuffledTrial = randperm(length(data.Trial));
-
-completedConditions = 0; % initiation of the completedConditions variable
-
-for idx = 1:length(data.Trial)
-
-    trial = shuffledTrial(idx);
-
-    completedConditions = completedConditions + 1;
-
-    % get color indices for gratings
-    if strcmp(data.Color2(trial), 'red')
-        turnoffIndicesVertical = 2:4;
-        turnoffIndicesHorizontal = [1 3 4];
-    elseif strcmp(data.Color2(trial), 'green')
-        turnoffIndicesVertical = [1 3 4];
-        turnoffIndicesHorizontal = 2:4;
-    else
-        turnoffIndicesVertical = 4;
-        turnoffIndicesHorizontal = 4;
-    end
-
-    if completedConditions == length(data.Trial)
-        participantInfo.ExperimentStatus = 'Completed';
-    else
-        participantInfo.ExperimentStatus = 'Not Completed';
-    end
+    %% REPETITION MATRIX FOR MOTION SIMULATION
+    
+    % TODO (VP): change limit of array from arbitrary 314 to a well thought
+    % through value
+    
+    [xHorizontal, xVertical] = meshgrid(1:314);
+    
+    %% ALPHA MASKS -- MONDREAN MASKS
+    
+    alphaMask1  = zeros(size(xHorizontal));
+    alphaMask2 = alphaMask1;
+    
+    % TODO (VP): make alpha mask values dynamic
+    alphaMask1(:,1:157) = 1;
+    alphaMask2(:,158:end) = 1;
+    
+    %%  INTRODUCTION OF THE CASES/CONDITIONS:
+    
+    % Introducing the different conditions of the experiment along with assigned variables
+    % Create 4D matrices for horizontal and vertical gratings
+    
+    xHorizontal(:,:,2) = xHorizontal(:,:,1);
+    xHorizontal(:,:,3) = xHorizontal(:,:,1);
+    xHorizontal(:,:,4) = xHorizontal(:,:,1);
+    
+    xVertical(:,:,2) = xVertical(:,:,1);
+    xVertical(:,:,3) = xVertical(:,:,1);
+    xVertical(:,:,4) = xVertical(:,:,1);
+    
+    % get a Flip for timing
+    vbl = Screen('Flip',ptb.window);
+    
+    completedRun = 0; % initiation of the completedRun variable
+    
+        % Loop through each trial in the current run
+        for trial = 1:height(data)
+            completedRun = completedRun + 1;
+    
+            % get color indices for gratings
+            if strcmp(data.Color(trial), 'Red')
+                turnoffIndicesVertical = 2:4;
+                turnoffIndicesHorizontal = [1 3 4];
+            elseif strcmp(data.Color(trial), 'Green')
+                turnoffIndicesVertical = [1 3 4];
+                turnoffIndicesHorizontal = 2:4;
+            else
+                turnoffIndicesVertical = 4;
+                turnoffIndicesHorizontal = 4;
+            end
+        end
 
     % get timing of trial onset
     trialOnset = GetSecs;
 
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
-        xHorizontal = xHorizontal + data.Motion1(trial) * design.stepSize;
-        xVertical = xVertical + data.Motion2(trial) * design.stepSize;
+        if strcmp(data.Motion(trial), 'Rightward') || strcmp(data.Motion(trial), 'Upward')
+            data.Motion(trial) = 1;
+        elseif strcmp(data.Motion(trial), 'Leftward') || strcmp(data.Motion(trial), 'Downward')
+            data.Motion(trial) = -1;
+        else
+            data.Motion(trial) = 0;
+        end
+
+        xHorizontal = xHorizontal + data.Motion(trial) * design.stepSize;
+        xVertical = xVertical + data.Motion(trial) * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
@@ -359,7 +370,6 @@ for idx = 1:length(data.Trial)
     WaitSecs(design.ITI)
 end
 
-
 %% GET KEYBOARD RESPONSES
 
 % Ensure the keyboard queue is stopped
@@ -384,7 +394,7 @@ while KbEventAvail(ptb.Keyboard2)
             keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
             % Record the trial number
-            trialNumber = shuffledTrial(idx);
+            trialNumber = shuffledTrial(trial);
 
             disp(['Pressed key: ' keyName ', Trial: ' num2str(trialNumber)]);
 
@@ -405,7 +415,7 @@ while KbEventAvail(ptb.Keyboard2)
             keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
             % Record the trial number
-            trialNumber = shuffledTrial(idx);
+            trialNumber = shuffledTrial(trial);
 
             disp(['Released key: ' keyName ', Trial: ' num2str(trialNumber)]);
 

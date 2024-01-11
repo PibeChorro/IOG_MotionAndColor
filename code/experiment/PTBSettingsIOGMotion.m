@@ -1,3 +1,4 @@
+
 function ptb = PTBSettingsIOGMotion(setUp)
 if nargin < 1 || isempty(setUp)
     setUp = 'CIN-Mac-Setup';
