@@ -176,19 +176,27 @@ selectedConditions = cell(numRuns, 1);
 
 % Loop through each run
 for runNumber = 1:numRuns
-    % Randomly permute the conditions for the current run
-    shuffledConditions = conditionsMatrix(runNumber, randperm(conditionsPerRun));
+    % Initialize the selected conditions for this run
+    selectedConditionsForRun = selectedConditions{runNumber};
     
-    % Add the shuffled conditions to the cell array
-    selectedConditions{runNumber} = shuffledConditions;
-    
-    % Save the selected conditions to CSV files
+    % Shuffle the conditions for the current run
+    shuffledConditionsForRun = selectedConditionsForRun(randperm(height(selectedConditionsForRun)), :);
+
+    % Save the shuffled conditions to the existing cell array
+    selectedConditions{runNumber} = shuffledConditionsForRun;
+
+    % Save data for this run to a CSV file
     folderName = 'data';  % Adjust this as needed
 
     % Save data for this run to a CSV file
     runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%02d.csv', subjectNumber, runNumber));
-    writetable(selectedConditions{runNumber}, runFileName);
     
+    % Convert the cell array to a table with proper column names
+    dataTable = cell2table(shuffledConditionsForRun, 'VariableNames', {'Motion', 'Color', 'Orientation'});
+
+    % Save the table to a CSV file
+    writetable(dataTable, runFileName, 'WriteMode', 'append');
+end
     
 
 %% INSTRUCTIONS:
@@ -219,7 +227,7 @@ for runNumber = 1:numRuns
 
 % Reading the CSV files for each run based on subject-specific files.
 
-    data = readtable(runFileName);
+  data = readtable(runFileName);
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
@@ -270,8 +278,7 @@ for runNumber = 1:numRuns
     completedRun = 0; % initiation of the completedRun variable
     
         % Loop through each trial in the current run
-        for trial = 1:height(data)
-            completedRun = completedRun + 1;
+ for trial = 1:height(data)
     
             % get color indices for gratings
             if strcmp(data.Color(trial), 'Red')
@@ -284,10 +291,9 @@ for runNumber = 1:numRuns
                 turnoffIndicesVertical = 4;
                 turnoffIndicesHorizontal = 4;
             end
-        end
 
-    % get timing of trial onset
-    trialOnset = GetSecs;
+        % get timing of trial onset
+        trialOnset = GetSecs;
 
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
@@ -356,6 +362,8 @@ for runNumber = 1:numRuns
         Screen('Close', tex2);
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
+
+        completedRun = completedRun + 1;
     end
 
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -445,5 +453,4 @@ catch KeyboardResponseError
     close all;
     sca;
     rethrow(KeyboardResponseError);
-end
 end
