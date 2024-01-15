@@ -12,3 +12,5 @@ code/experiment/~$Run_1.xlsx
 *.txt
 
 code/experiment/data/.DS_Store
+
+*.csv

@@ -278,7 +278,12 @@ end
     completedRun = 0; % initiation of the completedRun variable
     
         % Loop through each trial in the current run
+<<<<<<< Updated upstream
  for trial = 1:height(data)
+=======
+        for trial = 1:length(numRuns/2)
+            completedRun = completedRun + 1;
+>>>>>>> Stashed changes
     
             % get color indices for gratings
             if strcmp(data.Color(trial), 'Red')
@@ -291,6 +296,16 @@ end
                 turnoffIndicesVertical = 4;
                 turnoffIndicesHorizontal = 4;
             end
+<<<<<<< Updated upstream
+=======
+            
+            if completedRun == length(numRuns/2)
+                participantInfo.ExperimentStatus = 'Run Completed';
+            else
+                participantInfo.ExperimentStatus = 'Run Not Completed';
+            end
+        end
+>>>>>>> Stashed changes
 
         % get timing of trial onset
         trialOnset = GetSecs;
