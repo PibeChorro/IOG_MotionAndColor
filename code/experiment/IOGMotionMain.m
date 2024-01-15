@@ -120,84 +120,18 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.left = ptb.Keys.interocular;
 end
 
-% Specify the number of runs for your experiment
 
-numRuns = 8;
+% Define experimental conditions with randomization and counterbalancing
+% of conditions
 
-% Define experimental conditions
-conditions = {
-    'Rightward', 'Red', 'Horizontal';
-    'Leftward', 'Green', 'Vertical';
-    'No Motion', 'Black', 'Horizontal';
-    'No Motion', 'Red', 'Vertical';
-    'Leftward', 'Red', 'Horizontal';
-    'Rightward', 'Black', 'Vertical';
-    'No Motion', 'Green', 'Vertical';
-    'Rightward', 'Green', 'Horizontal';
-    'Leftward', 'Green', 'Horizontal';
-    'Rightward', 'Black', 'Vertical';
-    'No Motion', 'Red', 'Vertical';
-    'No Motion', 'Black', 'Horizontal';
-    'Rightward', 'Red', 'Vertical';
-    'Leftward', 'Green', 'Horizontal';
-    'No Motion', 'Green', 'Horizontal';
-    'Leftward', 'Black', 'Vertical';
-    'Rightward', 'Green', 'Vertical';
-    'Leftward', 'Black', 'Horizontal';
-    'No Motion', 'Black', 'Vertical';
-    'No Motion', 'Red', 'Horizontal';
-    'Leftward', 'Red', 'Vertical';
-    'Rightward', 'Green', 'Horizontal';
-    'No Motion', 'Green', 'Vertical';
-    'Rightward', 'Red', 'Horizontal';
-    'Leftward', 'Red', 'Vertical';
-    'Rightward', 'Green', 'Horizontal';
-    'No Motion', 'Green', 'Vertical';
-    'No Motion', 'Black', 'Horizontal';
-    'Leftward', 'Black', 'Vertical';
-    'Rightward', 'Red', 'Horizontal';
-    'No Motion', 'Red', 'Horizontal';
-    'Leftward', 'Green', 'Vertical'
-};
-
-% Calculate the number of conditions per run
-conditionsPerRun = length(conditions) / numRuns;
-
-% Check if the number of conditions per run is an integer
-if conditionsPerRun ~= round(conditionsPerRun)
-    error('The number of conditions is not divisible evenly by the number of runs.');
+try
+    runRandomization();
+catch randomizationError
+    sca;
+    close all;
+    rethrow(randomizationError);
 end
 
-% Reshape conditions into a matrix with rows representing runs and columns representing conditions
-conditionsMatrix = reshape(conditions, conditionsPerRun, []).';
-
-% Initialize a cell array to store the selected conditions for each run
-selectedConditions = cell(numRuns, 1);
-
-% Loop through each run
-for runNumber = 1:numRuns
-    % Initialize the selected conditions for this run
-    selectedConditionsForRun = selectedConditions{runNumber};
-    
-    % Shuffle the conditions for the current run
-    shuffledConditionsForRun = selectedConditionsForRun(randperm(height(selectedConditionsForRun)), :);
-
-    % Save the shuffled conditions to the existing cell array
-    selectedConditions{runNumber} = shuffledConditionsForRun;
-
-    % Save data for this run to a CSV file
-    folderName = 'data';  % Adjust this as needed
-
-    % Save data for this run to a CSV file
-    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%02d.csv', subjectNumber, runNumber));
-    
-    % Convert the cell array to a table with proper column names
-    dataTable = cell2table(shuffledConditionsForRun, 'VariableNames', {'Motion', 'Color', 'Orientation'});
-
-    % Save the table to a CSV file
-    writetable(dataTable, runFileName, 'WriteMode', 'append');
-end
-    
 
 %% INSTRUCTIONS:
     
@@ -227,11 +161,12 @@ end
 
 % Reading the CSV files for each run based on subject-specific files.
 
-  data = readtable(runFileName);
+%   data = readtable(tableForRun);
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
 %% Stop and remove events in queue
+
 %     KbQueueStop(ptb.Keyboard2);
 %     KbEventFlush(ptb.Keyboard2);
 
@@ -275,16 +210,8 @@ end
     % get a Flip for timing
     vbl = Screen('Flip',ptb.window);
     
-    completedRun = 0; % initiation of the completedRun variable
-    
         % Loop through each trial in the current run
-<<<<<<< Updated upstream
  for trial = 1:height(data)
-=======
-        for trial = 1:length(numRuns/2)
-            completedRun = completedRun + 1;
->>>>>>> Stashed changes
-    
             % get color indices for gratings
             if strcmp(data.Color(trial), 'Red')
                 turnoffIndicesVertical = 2:4;
@@ -296,22 +223,13 @@ end
                 turnoffIndicesVertical = 4;
                 turnoffIndicesHorizontal = 4;
             end
-<<<<<<< Updated upstream
-=======
-            
-            if completedRun == length(numRuns/2)
-                participantInfo.ExperimentStatus = 'Run Completed';
-            else
-                participantInfo.ExperimentStatus = 'Run Not Completed';
-            end
-        end
->>>>>>> Stashed changes
 
         % get timing of trial onset
         trialOnset = GetSecs;
 
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
+
         if strcmp(data.Motion(trial), 'Rightward') || strcmp(data.Motion(trial), 'Upward')
             data.Motion(trial) = 1;
         elseif strcmp(data.Motion(trial), 'Leftward') || strcmp(data.Motion(trial), 'Downward')
@@ -378,7 +296,7 @@ end
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
 
-        completedRun = completedRun + 1;
+%         completedRun = completedRun + 1;
     end
 
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
