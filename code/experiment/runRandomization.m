@@ -49,44 +49,32 @@ for subjectNum = 1:24
 
     for runIdx = 1:runNumber
         runTrials = cell(trialsPerRun, 6);
-        usedMotionCombinations = {}; % Keep track of used motion combinations
 
         % Randomize the order of conditions
         randomizedConditions = allConditions(randperm(length(allConditions)));
 
         % Iterate over each condition and randomly select one combination
         % using datasample() function
+
         for conditionIdx = 1:length(randomizedConditions)
             currentCondition = randomizedConditions{conditionIdx};
-            
-            % Continue selecting until a unique motion combination is found
-%             isUniqueCombination = false;
-%             while ~isUniqueCombination
-                selectedCombination = datasample(currentCondition, 1, 'Replace', false);
-                motionCombination = selectedCombination{1, 1};
-
-                
-                % Check if the motion combination is unique in the current run
-%                 if ~ismember(motionCombination, usedMotionCombinations)
-%                     isUniqueCombination = true;
-%                     usedMotionCombinations = [usedMotionCombinations; motionCombination];
-%                 end
-%             end
-            
+            selectedCombination = datasample(currentCondition, 1, 'Replace', false);
+        
             runTrials{conditionIdx, 1} = selectedCombination{1, 1};
             runTrials{conditionIdx, 2} = selectedCombination{1, 2};
             runTrials{conditionIdx, 3} = selectedCombination{1, 3};
-        end
-            
+        
             % Determine 'Motion2' based on 'Motion1'
             if strcmp(selectedCombination{1, 1}, 'No Motion')
                 runTrials{conditionIdx, 4} = 'No Motion';
             elseif strcmp(selectedCombination{1, 1}, 'Leftward') || strcmp(selectedCombination{1, 1}, 'Rightward')
-                runTrials{conditionIdx, 4} = datasample({'Upward', 'Downward'}, 1);
+                motionOptions = {'Upward', 'Downward'};
+                runTrials{conditionIdx, 4} = datasample(motionOptions, 1, 'Replace', false);
             elseif strcmp(selectedCombination{1, 1}, 'Upward') || strcmp(selectedCombination{1, 1}, 'Downward')
-                runTrials{conditionIdx, 4} = datasample({'Leftward', 'Rightward'}, 1);
+                motionOptions = {'Leftward', 'Rightward'};
+                runTrials{conditionIdx, 4} = datasample(motionOptions, 1, 'Replace', false);
             end
-            
+        
             % Determine 'Color2' directly based on 'Color1'
             if strcmp(selectedCombination{1, 2}, 'Black')
                 runTrials{conditionIdx, 5} = 'Black';
@@ -95,25 +83,25 @@ for subjectNum = 1:24
             else
                 runTrials{conditionIdx, 5} = 'Green';
             end
-            
+        
             % Determine 'Orientation2' based on 'Orientation1'
             if strcmp(selectedCombination{1, 3}, 'Horizontal')
                 runTrials{conditionIdx, 6} = 'Vertical';
             else
                 runTrials{conditionIdx, 6} = 'Horizontal';
             end
-        end
-
         % Store the selected trials for this run
         selectedTrialsCellArray{runIdx} = runTrials;
         
         % Create a table and save it to a CSV file
         tableForRun = cell2table(runTrials, 'VariableNames', {'Motion1', 'Color1', 'Orientation1', 'Motion2', 'Color2', 'Orientation2'});
         writetable(tableForRun, ['Subject_' num2str(subjectNum) '_Run_' num2str(runIdx) '.csv']);
+        end
     end
+    end
+end
 
     % Display the selected trials for each run for the current subject
     disp(['Selected Trials for Subject ' num2str(subjectNum) ':']);
     disp(selectedTrialsCellArray);
-
 end
