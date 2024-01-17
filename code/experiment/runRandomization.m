@@ -9,35 +9,38 @@ for subjectNum = 1:24
     trialsPerRun = 4;
 
     % Define options
-    NoMotion_NoColor = {'No Motion', 'Black', 'Horizontal'
-        'No Motion', 'Black', 'Vertical'};
+    NoMotion_NoColor = {
+        'No Motion', 'No Motion', 'Black', 'Black', 'Horizontal',   'Vertical'
+        };
 
-    NM_NC_Condition = repmat(NoMotion_NoColor, 4, 1);
+    NM_NC_Condition = NoMotion_NoColor;
 
-    NoMotion_Color = {'No Motion', 'Green', 'Horizontal'
-        'No Motion', 'Red', 'Vertical'
-        'No Motion', 'Red', 'Horizontal'
-        'No Motion', 'Green', 'Vertical'};
+    NoMotion_Color = {
+        'No Motion', 'No Motion', 'Green', 'Red', 'Horizontal', 'Vertical'
+        'No Motion', 'No Motion', 'Green', 'Red', 'Vertical',   'Horizontal'
+        };
 
-    NM_C_Condition = repmat(NoMotion_Color, 2, 1);
+    NM_C_Condition = repmat(NoMotion_Color, 4, 1);
 
-    Motion_NoColor = {'Upward', 'Black', 'Horizontal'
-        'Leftward', 'Black', 'Vertical'
-        'Downward', 'Black', 'Horizontal'
-        'Rightward', 'Black', 'Vertical'}';
-
-    Motion_NoColor = Motion_NoColor';
+    Motion_NoColor = {
+        'Upward',   'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
+        'Downward', 'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
+        'Upward',   'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
+        'Downward', 'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
+        };
 
     M_NC_Condition = repmat(Motion_NoColor, 2, 1);
 
-    Motion_Color = {'Upward', 'Green', 'Horizontal'
-        'Leftward', 'Red', 'Vertical'
-        'Downward', 'Red', 'Horizontal'
-        'Rightward', 'Green', 'Vertical'
-        'Upward', 'Red', 'Horizontal'
-        'Leftward', 'Green', 'Vertical'
-        'Downward', 'Green', 'Horizontal'
-        'Rightward', 'Red', 'Vertical'};
+    Motion_Color = {
+        'Upward',   'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical'
+        'Downward', 'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical'
+        'Upward',   'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical'
+        'Downward', 'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical'
+        'Upward',   'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical'
+        'Downward', 'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical'
+        'Upward',   'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical'
+        'Downward', 'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical'
+        };
 
     M_C_Condition = Motion_Color;
 
@@ -63,17 +66,20 @@ for subjectNum = 1:24
             runTrials{conditionIdx, 1} = selectedCombination{1, 1};
             runTrials{conditionIdx, 2} = selectedCombination{1, 2};
             runTrials{conditionIdx, 3} = selectedCombination{1, 3};
-        
-            % Determine 'Motion2' based on 'Motion1'
-            if strcmp(selectedCombination{1, 1}, 'No Motion')
-                runTrials{conditionIdx, 4} = 'No Motion';
-            elseif strcmp(selectedCombination{1, 1}, 'Leftward') || strcmp(selectedCombination{1, 1}, 'Rightward')
-                motionOptions = {'Upward', 'Downward'};
-                runTrials{conditionIdx, 4} = datasample(motionOptions, 1, 'Replace', false);
-            elseif strcmp(selectedCombination{1, 1}, 'Upward') || strcmp(selectedCombination{1, 1}, 'Downward')
-                motionOptions = {'Leftward', 'Rightward'};
-                runTrials{conditionIdx, 4} = datasample(motionOptions, 1, 'Replace', false);
-            end
+
+
+            selectedNoMotion_NoColor = NoMotion_NoColor(1,:);
+            selectedMotion_Color = Motion_Color(1,:);
+
+            % take first option from no_motion_Color that doesnt have the
+            % same color combination of Motion_Color.
+
+            % take first option from motion_no_color that doesnt have the
+            % same motion combination of Motion_Color. and shuffle them.
+            % do this in a iteration loop that everytime it takes one
+            % condition and saves it to a file, it deletes that option for
+            % that run file and takes the second one.
+
         
             % Determine 'Color2' directly based on 'Color1'
             if strcmp(selectedCombination{1, 2}, 'Black')
