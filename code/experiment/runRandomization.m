@@ -54,7 +54,7 @@ for subjectNum = 1:24
         randomizedConditions = allConditions(randperm(length(allConditions)));
 
         % Iterate over each condition and randomly select one combination
-        % using datasample() function
+        % using datasample() function without replacement
 
         for conditionIdx = 1:length(randomizedConditions)
             currentCondition = randomizedConditions{conditionIdx};
@@ -98,10 +98,5 @@ for subjectNum = 1:24
         writetable(tableForRun, ['Subject_' num2str(subjectNum) '_Run_' num2str(runIdx) '.csv']);
         end
     end
-    end
 end
-
-    % Display the selected trials for each run for the current subject
-    disp(['Selected Trials for Subject ' num2str(subjectNum) ':']);
-    disp(selectedTrialsCellArray);
 end

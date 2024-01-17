@@ -7,7 +7,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-Mac-Setup';
+    setUp = 'Sarah Laptop';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -33,8 +33,8 @@ design = getInstructions();
 
 design.stimulusPresentationTime = 5 - ptb.ifi/2;
 design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.4;   % decreasing the contrast between rivaling stimuli prolonges the dominance time
-design.stepSize                 = 0.25;  % step size for motion trials to reduce/increase velocity
+design.contrast                 = 0.5;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
@@ -75,18 +75,19 @@ ptb.Keys.interocular = ptb.Keys.right;
 %% PARTICIPANT INFORMATION
 
 % Initialize participantInfo structure
-participantInfo = struct('age', [], 'gender', []);
+participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
 
 % Collect participant information
 participantInfo.age = input('Enter your age: ');
 
-% Get gender from user input (1 for male, 2 for female, 3 for other)
+% Get gender from user input (1 for male, 2 for female)
+
 while true
     gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
     
     % Check if the input is a valid numeric value
     if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2, 3])
-        disp('Invalid input. Please enter 1 for male, 2 for female, or 3 for other');
+        disp('Invalid input. Please enter 1 for male, 2 for female or 3 for other');
     else
         % Convert gender to a string representation
         if str2double(gender) == 1
@@ -120,53 +121,86 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.left = ptb.Keys.interocular;
 end
 
+% Create a folder named 'data' for the subjects
+folderName = fullfile('data', sprintf('sub-%02d', subjectNumber)); % 'sub-01', 'sub-02', etc.
 
-% Define experimental conditions with randomization and counterbalancing
-% of conditions
+if exist(folderName, 'dir')
+    % Folder already exists, ask for confirmation
+    userResponse = input('Warning: Folder for this subject already exists. Do you want to proceed? (yes/no): ', 's');
+    
+    if strcmpi(userResponse, 'no')
+        sca;
+        close all;
+        error('User chose not to proceed. Exiting.');
+    end
+else
+    % Folder doesn't exist, create it
+    mkdir(folderName);
+end
 
-try
-    runRandomization();
-catch randomizationError
-    sca;
-    close all;
-    rethrow(randomizationError);
+% Specify the number of runs for your experiment
+numRuns = 1;  % Adjust this based on your experiment
+
+% Create CSV files for each run inside the subject folder
+% Create CSV files for each run inside the subject folder
+for runNumber = 1:numRuns
+    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
+    
+    % Check if CSV file already exists
+    if exist(runFileName, 'file')
+        userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
+            'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
+        if strcmpi(userResponse, 'no')
+            sca;
+            close all;
+            error('User chose not to proceed. Exiting.');
+        end
+    end
+    
+    % Write combined data to the CSV file
+    writetable(struct2table(participantInfo), runFileName);
+    
 end
 
 
 %% INSTRUCTIONS:
-    
-    % Experimental instructions with texts (using experimental function from another mat script).
-    
-    try
-        Experiment_Instructions(ptb);
-    catch instructionsError
-        sca;
-        close all;
-        rethrow(instructionsError);
-    end
+
+% Experimental instructions with texts (using experimental function from another mat script).
+
+try
+    Experiment_Instructions(ptb);
+catch instructionsError
+    sca;
+    close all;
+    rethrow(instructionsError);
+end
 
 
 %% FUSION TEST:
 
 % Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
-    
-    try
-        alignFusion(ptb, design);
-    catch alignFusionError
-        sca;
-        rethrow(alignFusionError);
-    end
+
+try
+    alignFusion(ptb, design);
+catch alignFusionError
+    sca;
+    rethrow(alignFusionError);
+end
 
 %% DATA READING:
 
-% Reading the CSV files for each run based on subject-specific files.
+% Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
 
-%   data = readtable(tableForRun);
+try
+    data = readtable('Run_1.xlsx');
+catch readDataError
+    sca;
+    rethrow(readDataError);
+end
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
 %% Stop and remove events in queue
-
 %     KbQueueStop(ptb.Keyboard2);
 %     KbEventFlush(ptb.Keyboard2);
 
@@ -178,72 +212,67 @@ end
     % Start the queue for Keyboard2
     KbQueueStart(ptb.Keyboard2);
 
-    %% REPETITION MATRIX FOR MOTION SIMULATION
-    
-    % TODO (VP): change limit of array from arbitrary 314 to a well thought
-    % through value
-    
-    [xHorizontal, xVertical] = meshgrid(1:314);
-    
-    %% ALPHA MASKS -- MONDREAN MASKS
-    
-    alphaMask1  = zeros(size(xHorizontal));
-    alphaMask2 = alphaMask1;
-    
-    % TODO (VP): make alpha mask values dynamic
-    alphaMask1(:,1:157) = 1;
-    alphaMask2(:,158:end) = 1;
-    
-    %%  INTRODUCTION OF THE CASES/CONDITIONS:
-    
-    % Introducing the different conditions of the experiment along with assigned variables
-    % Create 4D matrices for horizontal and vertical gratings
-    
-    xHorizontal(:,:,2) = xHorizontal(:,:,1);
-    xHorizontal(:,:,3) = xHorizontal(:,:,1);
-    xHorizontal(:,:,4) = xHorizontal(:,:,1);
-    
-    xVertical(:,:,2) = xVertical(:,:,1);
-    xVertical(:,:,3) = xVertical(:,:,1);
-    xVertical(:,:,4) = xVertical(:,:,1);
-    
-    % get a Flip for timing
-    vbl = Screen('Flip',ptb.window);
-    
-        % Loop through each trial in the current run
- for trial = 1:height(data)
-            % get color indices for gratings
-            if strcmp(data.Color(trial), 'Red')
-                turnoffIndicesVertical = 2:4;
-                turnoffIndicesHorizontal = [1 3 4];
-            elseif strcmp(data.Color(trial), 'Green')
-                turnoffIndicesVertical = [1 3 4];
-                turnoffIndicesHorizontal = 2:4;
-            else
-                turnoffIndicesVertical = 4;
-                turnoffIndicesHorizontal = 4;
-            end
+%% REPETITION MATRIX FOR MOTION SIMULATION
 
-        % get timing of trial onset
-        trialOnset = GetSecs;
+% TODO (VP): change limit of array from arbitrary 314 to a well thought
+% through value
 
+[xHorizontal, xVertical] = meshgrid(1:314);
+
+%% ALPHA MASKS -- MONDREAN MASKS
+
+alphaMask1  = zeros(size(xHorizontal));
+alphaMask2 = alphaMask1;
+
+% TODO (VP): make alpha mask values dynamic
+alphaMask1(:,1:157) = 1;
+alphaMask2(:,158:end) = 1;
+
+%%  INTRODUCTION OF THE CASES/CONDITIONS:
+
+% Introducing the different conditions of the experiment along with assigned variables
+% Create 4D matrices for horizontal and vertical gratings
+% figure out issue with the zeros and grating formation here
+
+xHorizontal(:,:,2) = xHorizontal(:,:,1);
+xHorizontal(:,:,3) = xHorizontal(:,:,1);
+xHorizontal(:,:,4) = xHorizontal(:,:,1);
+
+xVertical(:,:,2) = xVertical(:,:,1);
+xVertical(:,:,3) = xVertical(:,:,1);
+xVertical(:,:,4) = xVertical(:,:,1);
+
+% get a Flip for timing
+vbl = Screen('Flip',ptb.window);
+
+shuffledTrial = randperm(length(data.Trial));
+
+for idx = 1:length(data.Trial)
+
+    trial = shuffledTrial(idx);
+
+    % get color indices for gratings
+    if strcmp(data.Color2(trial), 'red')
+        turnoffIndicesVertical = 2:4;
+        turnoffIndicesHorizontal = [1 3 4];
+    elseif strcmp(data.Color2(trial), 'green')
+        turnoffIndicesVertical = [1 3 4];
+        turnoffIndicesHorizontal = 2:4;
+    else
+        turnoffIndicesVertical = 4;
+        turnoffIndicesHorizontal = 4;
+    end
+
+    % get timing of trial onset
+    trialOnset = GetSecs;
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
-
-        if strcmp(data.Motion(trial), 'Rightward') || strcmp(data.Motion(trial), 'Upward')
-            data.Motion(trial) = 1;
-        elseif strcmp(data.Motion(trial), 'Leftward') || strcmp(data.Motion(trial), 'Downward')
-            data.Motion(trial) = -1;
-        else
-            data.Motion(trial) = 0;
-        end
-
-        xHorizontal = xHorizontal + data.Motion(trial) * design.stepSize;
-        xVertical = xVertical + data.Motion(trial) * design.stepSize;
+        xHorizontal = xHorizontal + data.Motion1(trial) * design.stepSize;
+        xVertical = xVertical + data.Motion2(trial) * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
-        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
+        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;            % normalizes value range from 0 to 1 instead of -1 to 1
     
         verticalGrating = sin(xVertical*0.3);
         leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
@@ -260,6 +289,7 @@ end
         rightScaledHorizontalGrating(:,:,4) = alphaMask2;
         rightScaledVerticalGrating(:,:,4) = alphaMask1;
 
+
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
        
@@ -267,10 +297,10 @@ end
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
         Screen('DrawTexture', ptb.window, backGroundTexture);
     
-        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);
+        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
     
-        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);
+        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);    % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
     
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
@@ -280,10 +310,10 @@ end
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
         Screen('DrawTexture', ptb.window, backGroundTexture);
     
-        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);
+        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
     
-        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);
+        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);     % create texture for stimulus
         Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
     
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
@@ -295,10 +325,7 @@ end
         Screen('Close', tex2);
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
-
-%         completedRun = completedRun + 1;
     end
-
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
     Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
             ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
@@ -311,6 +338,7 @@ end
     WaitSecs(design.ITI)
 end
 
+
 %% GET KEYBOARD RESPONSES
 
 % Ensure the keyboard queue is stopped
@@ -319,51 +347,35 @@ KbQueueStop(ptb.Keyboard2);
 % Initialize data structure to store keyboard events
 get.data = struct('idDown', [], 'timeDown', [], 'idUp', [], 'timeUp', []);
 
-
 % Inside the loop where you process key events
 while KbEventAvail(ptb.Keyboard2)
     [evt, ~] = KbEventGet(ptb.Keyboard2);
 
     if evt.Pressed == 1 % for key presses
-        % Check if the pressed key is a numeric key
-        if ismember(evt.Keycode, [KbName('1!'), KbName('2@'), KbName('3#'), KbName('4$'), KbName('5%'), ...
-                                  KbName('6^'), KbName('7&'), KbName('8*'), KbName('9('), KbName('0)')])
-            % Record the interpreted key value for debugging
-            keyName = KbName(evt.Keycode);
+        % Print the interpreted key value for debugging
+        keyName = KbName(evt.Keycode);
 
-            % Remove special characters associated with the Shift key
-            keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
+        % Remove special characters associated with the Shift key
+        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
-            % Record the trial number
-            trialNumber = shuffledTrial(trial);
+        disp(['Pressed key: ' keyName]);
 
-            disp(['Pressed key: ' keyName ', Trial: ' num2str(trialNumber)]);
-
-            % Convert keyName to a cell array before concatenation
-            get.data.idDown   = [get.data.idDown; {keyName}];
-            get.data.timeDown = [get.data.timeDown; GetSecs];
-        end
+        % Convert keyName to a cell array before concatenation
+        get.data.idDown   = [get.data.idDown; {keyName}];
+        get.data.timeDown = [get.data.timeDown; GetSecs];
 
     else % for key releases
-        % Check if the released key is a numeric key
-        if ismember(evt.Keycode, [KbName('1!'), KbName('2@'), KbName('3#'), KbName('4$'), KbName('5%'), ...
-                                  KbName('6^'), KbName('7&'), KbName('8*'), KbName('9('), KbName('0)')])
+        % Print the interpreted key value for debugging
+        keyName = KbName(evt.Keycode);
 
-            % Record the interpreted key value for debugging
-            keyName = KbName(evt.Keycode);
+        % Remove special characters associated with the Shift key
+        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
 
-            % Remove special characters associated with the Shift key
-            keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
+        disp(['Released key: ' keyName]);
 
-            % Record the trial number
-            trialNumber = shuffledTrial(trial);
-
-            disp(['Released key: ' keyName ', Trial: ' num2str(trialNumber)]);
-
-            % Convert keyName to a cell array before concatenation
-            get.data.idUp   = [get.data.idUp; {keyName}];
-            get.data.timeUp = [get.data.timeUp; GetSecs];
-        end
+        % Convert keyName to a cell array before concatenation
+        get.data.idUp   = [get.data.idUp; {keyName}];
+        get.data.timeUp = [get.data.timeUp; GetSecs];
     end
 end
 
@@ -372,18 +384,19 @@ minLength = min(length(get.data.idDown), length(get.data.idUp));
 get.data.idDown = get.data.idDown(1:minLength);
 get.data.idUp = get.data.idUp(1:minLength);
 
+% Determine eye condition based on subjectNumber
 % Save keyboard events to the CSV file
 keyboardFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_keyboard_data.csv', subjectNumber));
 keyboardData = table(get.data.idDown, get.data.timeDown - trialOnset, get.data.idUp, get.data.timeUp - trialOnset, ...
-                      repmat({participantInfo.ExperimentStatus}, length(get.data.idDown), 1), ...
-                      'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime', 'ExperimentStatus'});
-
+                      'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime'});
 writetable(keyboardData, keyboardFileName);
 
 try
     formatResponses(get,ptb)
-catch KeyboardResponseError
+catch KEYBOARDRESPONSERROR
     close all;
     sca;
-    rethrow(KeyboardResponseError);
+    rethrow(KEYBOARDRESPONSERROR);
+end
+
 end
