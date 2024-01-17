@@ -1,5 +1,6 @@
 
 *.asv
+<<<<<<< HEAD
 
 *.xlsx#
 
@@ -14,3 +15,7 @@ code/experiment/~$Run_1.xlsx
 code/experiment/data/.DS_Store
 
 *.csv
+=======
+>>>>>>> 0b676e306470b1177f3fb05c22ed4c1e17e02773
+
+code/experiment/openExperimentWindow.m
