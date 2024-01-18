@@ -44,43 +44,67 @@ for subjectNum = 1:24
 
     M_C_Condition = Motion_Color;
 
-    % Combine all conditions into one cell array
-    allConditions = {NM_NC_Condition, NM_C_Condition, M_NC_Condition, M_C_Condition};
-
     % Initialize a cell array to store the selected trials
     selectedTrialsCellArray = cell(runNumber, 1);
 
     for runIdx = 1:runNumber
         runTrials = cell(trialsPerRun, 6);
 
+        % Combine all conditions into one cell array
+        allConditions = {NM_NC_Condition, NM_C_Condition, M_NC_Condition, M_C_Condition};
+
         % Randomize the order of conditions
         randomizedConditions = allConditions(randperm(length(allConditions)));
 
-        % Iterate over each condition and randomly select one combination
-        % using datasample() function without replacement
-
         for conditionIdx = 1:length(randomizedConditions)
+        
             currentCondition = randomizedConditions{conditionIdx};
-            selectedCombination = datasample(currentCondition, 1, 'Replace', false);
+        
+            if conditionIdx == 1 && strcmp(currentCondition{1, 1}, 'No Motion') && strcmp(currentCondition{1, 3}, 'Black')
+                selectedCombination = currentCondition(1, :);
+                currentCondition(1, :) = []; % Remove the selected option
+            elseif conditionIdx == 2 && ~strcmp(currentCondition{1, 1}, 'No Motion')
+                selectedCombination = currentCondition(1, :);
+                currentCondition(1, :) = []; % Remove the selected option
+            else
+                randomIndex = randperm(size(currentCondition, 1), 1);
+                selectedCombination = currentCondition(randomIndex, :);
+                currentCondition(randomIndex, :) = []; % Remove the selected option
+            end
         
             runTrials{conditionIdx, 1} = selectedCombination{1, 1};
             runTrials{conditionIdx, 2} = selectedCombination{1, 2};
             runTrials{conditionIdx, 3} = selectedCombination{1, 3};
-
-
-            selectedNoMotion_NoColor = NoMotion_NoColor(1,:);
-            selectedMotion_Color = Motion_Color(1,:);
-
-            % take first option from no_motion_Color that doesnt have the
-            % same color combination of Motion_Color.
-
-            % take first option from motion_no_color that doesnt have the
-            % same motion combination of Motion_Color. and shuffle them.
-            % do this in a iteration loop that everytime it takes one
-            % condition and saves it to a file, it deletes that option for
-            % that run file and takes the second one.
-
         
+            if conditionIdx == 3
+                for i = 1:size(NM_C_Condition, 1)
+                    if ~strcmp(NM_C_Condition{i, 3}, runTrials{2, 3})
+                        selectedCombination = NM_C_Condition(i, :);
+                        NM_C_Condition(i, :) = [];
+                        break;
+                    end
+                end
+        
+            elseif conditionIdx == 4
+                for i = 1:size(M_NC_Condition, 1)
+                    if ~strcmp(M_NC_Condition{i, 1}, runTrials{2, 1}) && ~strcmp(M_NC_Condition{i, 2}, runTrials{2, 2})
+                        selectedCombination = M_NC_Condition(i, :);
+                        M_NC_Condition(i, :) = [];
+                        break;
+                    end
+                end
+            else
+                randomIndex = randperm(size(currentCondition, 1), 1);
+                selectedCombination = currentCondition(randomIndex, :);
+                currentCondition(randomIndex, :) = []; % Remove the selected option
+            end
+        end
+
+            if conditionIdx > 2
+                selectedCombination = currentCondition(1, :);
+                currentCondition(1, :) = [];
+            end
+
             % Determine 'Color2' directly based on 'Color1'
             if strcmp(selectedCombination{1, 2}, 'Black')
                 runTrials{conditionIdx, 5} = 'Black';
@@ -96,13 +120,15 @@ for subjectNum = 1:24
             else
                 runTrials{conditionIdx, 6} = 'Horizontal';
             end
+
         % Store the selected trials for this run
         selectedTrialsCellArray{runIdx} = runTrials;
-        
-        % Create a table and save it to a CSV file
-        tableForRun = cell2table(runTrials, 'VariableNames', {'Motion1', 'Color1', 'Orientation1', 'Motion2', 'Color2', 'Orientation2'});
-        writetable(tableForRun, ['Subject_' num2str(subjectNum) '_Run_' num2str(runIdx) '.csv']);
-        end
     end
 end
+        
+        % Convert cell array to table
+        T = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2'});
+        
+        % Write table to CSV file
+        writetable(T, sprintf('run%d.csv', runIdx));
 end
