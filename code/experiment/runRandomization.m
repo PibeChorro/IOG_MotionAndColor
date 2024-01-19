@@ -58,41 +58,52 @@ for subjectNum = 1:24
         
             runTrials(1, :) = NM_NC_Condition(1, :);
             runTrials(2, :) = M_C_Condition(1, :);
+            runTrials(3, [1, 2]) = NM_C_Condition(1, [1,2]);
           
-            % Get the color and orientation combination of the selected Motion_Color
-            selected_M_C_orientation = runTrials(2, 3:6);
+            % Gets the color and orientation combination of the selected Motion_Color
+            selected_M_C_color = runTrials(2, 3:4);
+            selected_M_C_orientation = runTrials(2, 5:6);
 
             selected_M_Orientation = runTrials(2, [1:2, 5:6]);
+            selected_NM_C_Orientation = NM_C_Condition(1, 5:6);
+            
+            selectedOption_C = [];
 
-            selectedOption = [];
+            while isempty(selectedOption_C)
+                currentOption_C = NM_C_Condition(1, [3,4]);
 
-            i = 1;
-
-            while isempty(selectedOption) && i <= size(NM_C_Condition, 1)
-                currentOption = NM_C_Condition(i, 3:6);
-
-                if ~isequal(currentOption, selected_M_C_orientation)
-                    selectedOption = NM_C_Condition(i, :);
-                    runTrials(3,:) = selectedOption;
+                if ~isequal(currentOption_C, selected_M_C_color)
+                    selectedOption_C = currentOption_C;
+                    runTrials(3,[3,4]) = selectedOption_C;
+                    runTrials(3,[5,6]) = selected_M_C_orientation;
                 else
-                    i = i + 1;
+                    if isequal(selected_M_C_orientation, selected_NM_C_Orientation)
+                        selectedOption_C = NM_C_Condition(1, [4,3]);
+                        runTrials(3,[3,4]) = selectedOption_C;
+                        runTrials(3,[5,6]) = selected_NM_C_Orientation;
+                    else
+                        selectedOption_C = currentOption_C;
+                        runTrials(3,[3,4]) = selectedOption_C;
+                        runTrials(3,[5,6]) = selected_NM_C_Orientation;
+                    end
+
                 end
             end
 
             selectedOption_M = [];
 
-            i = 1;
-
             while isempty(selectedOption_M)
-                currentOption_M = M_NC_Condition(i, [1:2, 5:6]);
+                currentOption = M_NC_Condition(1, [1:2, 5:6]);
                 
-                if ~isequal(currentOption_M, selected_M_Orientation)
-                    selectedOption_M = M_NC_Condition(i, :);
+                if ~isequal(currentOption, selected_M_Orientation)
+                    selectedOption_M = M_NC_Condition(1, :);
                     runTrials(4,:) = selectedOption_M;
                 else
-                    i = i + 1;
+                    selectedOption_M = M_NC_Condition(1, [2:1, 3:4, 6:5]);
+                    runTrials(4,:) = selectedOption_M;
                 end
             end
+
 
            NM_NC_Condition(1, :) = [];
            M_C_Condition(1, :) = [];
