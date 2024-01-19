@@ -30,8 +30,12 @@ for subjectNum = 1:24
             'Downward', 'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
             'Upward',   'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
             'Downward', 'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
-            };
+        };
         
+        % Reverse the order of rows
+        Motion_NoColor = flipud(Motion_NoColor);
+        
+        % Replicate the modified Motion_NoColor array
         M_NC_Condition = repmat(Motion_NoColor, 2, 1);
         
         Motion_Color = {
@@ -70,24 +74,24 @@ for subjectNum = 1:24
                 if ~isequal(currentOption, selected_M_C_orientation)
                     selectedOption = NM_C_Condition(i, :);
                     runTrials(3,:) = selectedOption;
+                else
+                    i = i + 1;
                 end
-
-                i = i + 1;
             end
 
             selectedOption_M = [];
 
             i = 1;
 
-            while isempty(selectedOption_M) && i <= size(M_NC_Condition, 1)
+            while isempty(selectedOption_M)
                 currentOption_M = M_NC_Condition(i, [1:2, 5:6]);
-            
+                
                 if ~isequal(currentOption_M, selected_M_Orientation)
-                    selectedOption_M = M_NC_Condition(i,:);
+                    selectedOption_M = M_NC_Condition(i, :);
                     runTrials(4,:) = selectedOption_M;
+                else
+                    i = i + 1;
                 end
-            
-                i = i + 1;
             end
 
            NM_NC_Condition(1, :) = [];
