@@ -122,7 +122,7 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
 end
 
 % Create a folder named 'data' for the subjects
-folderName = fullfile('data', sprintf('sub-%02d', subjectNumber)); % 'sub-01', 'sub-02', etc.
+folderName = fullfile('data', sprintf('sub-%02d', subjectNumber));
 
 if exist(folderName, 'dir')
     % Folder already exists, ask for confirmation
@@ -144,7 +144,7 @@ numRuns = 1;  % Adjust this based on your experiment
 % Create CSV files for each run inside the subject folder
 % Create CSV files for each run inside the subject folder
 for runNumber = 1:numRuns
-    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%d.csv', subjectNumber, runNumber));
+    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%02d.csv', subjectNumber, runNumber));
     
     % Check if CSV file already exists
     if exist(runFileName, 'file')
@@ -189,14 +189,14 @@ end
 
 %% DATA READING:
 
-% Reading the different “Run” Excel files to be used later and being assigned to specific variable names.
-
 try
-    data = readtable('Run_1.xlsx');
-catch readDataError
+    data = runRandomization();
+catch randomizationError
     sca;
-    rethrow(readDataError);
+    rethrow(randomizationError);
 end
+
+    data = table2struct(data, 'toScalar', true);
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
@@ -245,17 +245,13 @@ xVertical(:,:,4) = xVertical(:,:,1);
 % get a Flip for timing
 vbl = Screen('Flip',ptb.window);
 
-shuffledTrial = randperm(length(data.Trial));
-
-for idx = 1:length(data.Trial)
-
-    trial = shuffledTrial(idx);
+for trial = 1:4
 
     % get color indices for gratings
-    if strcmp(data.Color2(trial), 'red')
+    if strcmp(data.Color2(trial), 'Red')
         turnoffIndicesVertical = 2:4;
         turnoffIndicesHorizontal = [1 3 4];
-    elseif strcmp(data.Color2(trial), 'green')
+    elseif strcmp(data.Color2(trial), 'Green')
         turnoffIndicesVertical = [1 3 4];
         turnoffIndicesHorizontal = 2:4;
     else
@@ -267,12 +263,31 @@ for idx = 1:length(data.Trial)
     trialOnset = GetSecs;
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
+        if any(strcmp(data.Motion1(trial), 'Leftward')) || any(strcmp(data.Motion1(trial), 'Downward'))
+            data.Motion1 = -1;
+            if any(strcmp(data.Motion2(trial), 'Leftward')) || any(strcmp(data.Motion2(trial), 'Downward'))
+                data.Motion2 = -1;
+            else
+                data.Motion2 = 1;
+            end
+        elseif any(strcmp(data.Motion1(trial), 'Rightward')) || any(strcmp(data.Motion1(trial), 'Upward'))
+            data.Motion1 = 1;
+            if any(strcmp(data.Motion2(trial), 'Leftward')) || any(strcmp(data.Motion1(trial), 'Downward'))
+                data.Motion2 = -1;
+            else
+                data.Motion2 = 1;
+            end
+        else
+            data.Motion1 = 0;
+            data.Motion2 = 0;
+        end
+
         xHorizontal = xHorizontal + data.Motion1(trial) * design.stepSize;
         xVertical = xVertical + data.Motion2(trial) * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
-        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;            % normalizes value range from 0 to 1 instead of -1 to 1
+        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
     
         verticalGrating = sin(xVertical*0.3);
         leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
