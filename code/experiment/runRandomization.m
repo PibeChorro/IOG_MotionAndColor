@@ -1,4 +1,4 @@
-function runRandomization()
+function data = runRandomization()
 
 for subjectNum = 1:24
 
@@ -8,7 +8,6 @@ for subjectNum = 1:24
     % Number of trials per run
     trialsPerRun = 4;
 
-         % Define options
         NoMotion_NoColor = {
             'No Motion', 'No Motion', 'Black', 'Black', 'Horizontal',   'Vertical'
             'No Motion', 'No Motion', 'Black', 'Black', 'Horizontal',   'Vertical'
@@ -32,7 +31,7 @@ for subjectNum = 1:24
             'Downward', 'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
         };
         
-        % Reverse the order of rows
+        % Reverses the order of rows
         Motion_NoColor = flipud(Motion_NoColor);
         
         % Replicate the modified Motion_NoColor array
@@ -115,10 +114,10 @@ for subjectNum = 1:24
 
         
         % Convert cell array to table
-        T = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2'});
+        data = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2'});
     
         % Write table to CSV file
-        writetable(T, sprintf('sub-%02d_run%02d_IOG.csv', subjectNum, runIdx));
+        writetable(data, sprintf('sub-%02d_run-%02d_IOG.csv', subjectNum, runIdx));
     end
 end
 end
