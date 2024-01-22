@@ -1,102 +1,118 @@
-function runRandomization()
+function data = runRandomization()
 
+% code for pseudorandomizing the different conditions of the interocular
+% grouping experiment. there must be eight runs for each subject (ideally
+% 24 subjects) and in each run there must be four unique trials (never the
+% same motion or color combination in the same run file). this code
+% generates eight csv files for the 24 subjects with four trials in each
+% csv file.
+
+
+% for loop that iterates over the different 24 subjects to be recruited
 for subjectNum = 1:24
+
+    subFolder = fullfile('..', '..','rawdata', sprintf('sub-%02d', subjectNum));
+    if ~exist(subFolder,'dir')
+        mkdir(subFolder)
+    end
 
     % Number of runs
     runNumber = 8;
 
     % Number of trials per run
     trialsPerRun = 4;
+    
+    % array with the NoMotion_NoColor combinations
+    NoMotion_NoColor = {
+        'No Motion', 'No Motion', 'Black', 'Black', 'Horizontal',   'Vertical'      % only written once here as opposed to the other conditions since there
+                                                                                    % are no other different combinations possible for this specific
+                                                                                    % condition.
+        };
 
-    % Define options
-    NoMotion_NoColor = {'No Motion', 'Black', 'Horizontal'
-        'No Motion', 'Black', 'Vertical'};
+    NM_NC_Condition = NoMotion_NoColor; % doesn't need to be replicated like the others since we just use the only possible
+                                        % combination for all runs.
 
-    NM_NC_Condition = repmat(NoMotion_NoColor, 4, 1);
+    NoMotion_Color = {
+        'No Motion', 'No Motion', 'Green',  'Red',      'Horizontal', 'Vertical'
+        'No Motion', 'No Motion', 'Red',    'Green',    'Horizontal', 'Vertical'
+        };
 
-    NoMotion_Color = {'No Motion', 'Green', 'Horizontal'
-        'No Motion', 'Red', 'Vertical'
-        'No Motion', 'Red', 'Horizontal'
-        'No Motion', 'Green', 'Vertical'};
+    NM_C_Condition = repmat(NoMotion_Color, 4, 1); % replicates the NoMotion_Color array
 
-    NM_C_Condition = repmat(NoMotion_Color, 2, 1);
-
-    Motion_NoColor = {'Upward', 'Black', 'Horizontal'
-        'Leftward', 'Black', 'Vertical'
-        'Downward', 'Black', 'Horizontal'
-        'Rightward', 'Black', 'Vertical'}';
-
-    Motion_NoColor = Motion_NoColor';
+    Motion_NoColor = {
+        'Upward',   'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
+        'Downward', 'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
+        'Upward',   'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
+        'Downward', 'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
+        };
 
     M_NC_Condition = repmat(Motion_NoColor, 2, 1);
+    
+    % eight different possibilities in this condition since it has all the
+    % grouping cues: Motion, color, and orientation.
 
-    Motion_Color = {'Upward', 'Green', 'Horizontal'
-        'Leftward', 'Red', 'Vertical'
-        'Downward', 'Red', 'Horizontal'
-        'Rightward', 'Green', 'Vertical'
-        'Upward', 'Red', 'Horizontal'
-        'Leftward', 'Green', 'Vertical'
-        'Downward', 'Green', 'Horizontal'
-        'Rightward', 'Red', 'Vertical'};
+    Motion_Color = {
+        'Upward',   'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical'
+        'Downward', 'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical'
+        'Upward',   'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical'
+        'Downward', 'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical'
+        'Upward',   'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical'
+        'Downward', 'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical'
+        'Upward',   'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical'
+        'Downward', 'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical'
+        };
 
-    M_C_Condition = Motion_Color;
+    M_C_Condition = Shuffle(Motion_Color, 2);
 
-    % Combine all conditions into one cell array
-    allConditions = {NM_NC_Condition, NM_C_Condition, M_NC_Condition, M_C_Condition};
-
-    % Initialize a cell array to store the selected trials
-    selectedTrialsCellArray = cell(runNumber, 1);
-
+    % for loop that iterates eight times and creates the csv runs for each subject
     for runIdx = 1:runNumber
+
         runTrials = cell(trialsPerRun, 6);
 
-        % Randomize the order of conditions
-        randomizedConditions = allConditions(randperm(length(allConditions)));
+        runTrials(1, :) = NM_NC_Condition(1, :);
+        runTrials(2, :) = M_C_Condition(1, :);
 
-        % Iterate over each condition and randomly select one combination
-        % using datasample() function without replacement
+        usedMotions = M_C_Condition(1, 1:2);
+        usedColors = M_C_Condition(1, 3:4);
+        
 
-        for conditionIdx = 1:length(randomizedConditions)
-            currentCondition = randomizedConditions{conditionIdx};
-            selectedCombination = datasample(currentCondition, 1, 'Replace', false);
-        
-            runTrials{conditionIdx, 1} = selectedCombination{1, 1};
-            runTrials{conditionIdx, 2} = selectedCombination{1, 2};
-            runTrials{conditionIdx, 3} = selectedCombination{1, 3};
-        
-            % Determine 'Motion2' based on 'Motion1'
-            if strcmp(selectedCombination{1, 1}, 'No Motion')
-                runTrials{conditionIdx, 4} = 'No Motion';
-            elseif strcmp(selectedCombination{1, 1}, 'Leftward') || strcmp(selectedCombination{1, 1}, 'Rightward')
-                motionOptions = {'Upward', 'Downward'};
-                runTrials{conditionIdx, 4} = datasample(motionOptions, 1, 'Replace', false);
-            elseif strcmp(selectedCombination{1, 1}, 'Upward') || strcmp(selectedCombination{1, 1}, 'Downward')
-                motionOptions = {'Leftward', 'Rightward'};
-                runTrials{conditionIdx, 4} = datasample(motionOptions, 1, 'Replace', false);
+        % for loop for motion pseudorandomization, makes sure that the
+        % motion combinations of M_NC_Condition and Motion_Color are never
+        % equal within one run file.
+
+        for mInd = 1:length(M_NC_Condition)
+            if ~isequal(usedMotions(1), M_NC_Condition(mInd, 1)) && ~isequal(usedMotions(2), M_NC_Condition(mInd, 2))
+                break
             end
-        
-            % Determine 'Color2' directly based on 'Color1'
-            if strcmp(selectedCombination{1, 2}, 'Black')
-                runTrials{conditionIdx, 5} = 'Black';
-            elseif strcmp(selectedCombination{1, 2}, 'Green')
-                runTrials{conditionIdx, 5} = 'Red';
-            else
-                runTrials{conditionIdx, 5} = 'Green';
-            end
-        
-            % Determine 'Orientation2' based on 'Orientation1'
-            if strcmp(selectedCombination{1, 3}, 'Horizontal')
-                runTrials{conditionIdx, 6} = 'Vertical';
-            else
-                runTrials{conditionIdx, 6} = 'Horizontal';
-            end
-        % Store the selected trials for this run
-        selectedTrialsCellArray{runIdx} = runTrials;
-        
-        % Create a table and save it to a CSV file
-        tableForRun = cell2table(runTrials, 'VariableNames', {'Motion1', 'Color1', 'Orientation1', 'Motion2', 'Color2', 'Orientation2'});
-        writetable(tableForRun, ['Subject_' num2str(subjectNum) '_Run_' num2str(runIdx) '.csv']);
         end
+        
+
+        % for loop for color pseudorandomization, makes sure the color
+        % combinations of NM_C_Condition and Motion_Color are never 
+        % equal within one run file.
+
+        for cInd = 1:length(NM_C_Condition)
+            if ~isequal(usedColors, NM_C_Condition(cInd,3:4))
+                break
+            end
+        end
+
+        runTrials(3,:) = M_NC_Condition(mInd,:);
+        runTrials(4,:) = NM_C_Condition(cInd,:);
+
+        M_C_Condition(1, :) = [];
+        NM_C_Condition(cInd, :) = [];
+        M_NC_Condition(mInd, :) = [];
+
+
+        runTrials = runTrials(randperm(size(runTrials, 1)), :); % shuffles the order of the trials in a random manner
+
+
+        % Converts cell array to table
+        data = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2'});
+
+        % Writes table to CSV file
+        writetable(data, fullfile(subFolder,sprintf('sub-%02d_run-%02d_conditions.csv', subjectNum, runIdx)));
     end
 end
 end
