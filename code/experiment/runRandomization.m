@@ -23,27 +23,28 @@ for subjectNum = 1:24
     trialsPerRun = 4;
     
     % array with the NoMotion_NoColor combinations
+    % only written once here as opposed to the other conditions since there
+    % are no other different combinations possible for this specific
+    % condition.
     NoMotion_NoColor = {
-        'No Motion', 'No Motion', 'Black', 'Black', 'Horizontal',   'Vertical'      % only written once here as opposed to the other conditions since there
-                                                                                    % are no other different combinations possible for this specific
-                                                                                    % condition.
+        'No Motion', 'No Motion', 'Black', 'Black', 'Horizontal',   'Vertical' , 'NoMotionNoColor'     
         };
 
     NM_NC_Condition = NoMotion_NoColor; % doesn't need to be replicated like the others since we just use the only possible
                                         % combination for all runs.
 
     NoMotion_Color = {
-        'No Motion', 'No Motion', 'Green',  'Red',      'Horizontal', 'Vertical'
-        'No Motion', 'No Motion', 'Red',    'Green',    'Horizontal', 'Vertical'
+        'No Motion', 'No Motion', 'Green',  'Red',      'Horizontal', 'Vertical', 'NoMotionColor' 
+        'No Motion', 'No Motion', 'Red',    'Green',    'Horizontal', 'Vertical', 'NoMotionColor' 
         };
 
     NM_C_Condition = repmat(NoMotion_Color, 4, 1); % replicates the NoMotion_Color array
 
     Motion_NoColor = {
-        'Upward',   'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
-        'Downward', 'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical'
-        'Upward',   'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
-        'Downward', 'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical'
+        'Upward',   'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical', 'MotionNoColor' 
+        'Downward', 'Leftward',     'Black', 'Black', 'Horizontal', 'Vertical', 'MotionNoColor' 
+        'Upward',   'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical', 'MotionNoColor' 
+        'Downward', 'Rightward',    'Black', 'Black', 'Horizontal', 'Vertical', 'MotionNoColor' 
         };
 
     M_NC_Condition = repmat(Motion_NoColor, 2, 1);
@@ -52,14 +53,14 @@ for subjectNum = 1:24
     % grouping cues: Motion, color, and orientation.
 
     Motion_Color = {
-        'Upward',   'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical'
-        'Downward', 'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical'
-        'Upward',   'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical'
-        'Downward', 'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical'
-        'Upward',   'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical'
-        'Downward', 'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical'
-        'Upward',   'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical'
-        'Downward', 'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical'
+        'Upward',   'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Downward', 'Leftward',     'Red', 'Green', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Upward',   'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Downward', 'Rightward',    'Red', 'Green', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Upward',   'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Downward', 'Leftward',     'Green', 'Red', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Upward',   'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical', 'MotionColor' 
+        'Downward', 'Rightward',    'Green', 'Red', 'Horizontal', 'Vertical', 'MotionColor' 
         };
 
     M_C_Condition = Shuffle(Motion_Color, 2);
@@ -67,7 +68,7 @@ for subjectNum = 1:24
     % for loop that iterates eight times and creates the csv runs for each subject
     for runIdx = 1:runNumber
 
-        runTrials = cell(trialsPerRun, 6);
+        runTrials = cell(trialsPerRun, 7);
 
         runTrials(1, :) = NM_NC_Condition(1, :);
         runTrials(2, :) = M_C_Condition(1, :);
@@ -109,7 +110,7 @@ for subjectNum = 1:24
 
 
         % Converts cell array to table
-        data = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2'});
+        data = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2', 'Condition'});
 
         % Writes table to CSV file
         writetable(data, fullfile(subFolder,sprintf('sub-%02d_run-%02d_conditions.csv', subjectNum, runIdx)));
