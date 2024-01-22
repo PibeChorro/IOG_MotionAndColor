@@ -2,6 +2,11 @@ function data = runRandomization()
 
 for subjectNum = 1:24
 
+    subFolder = fullfile('..', '..','rawdata', sprintf('sub-%02d', subjectNum));
+    if ~exist(subFolder,'dir')
+        mkdir(subFolder)
+    end
+
     % Number of runs
     runNumber = 8;
 
@@ -82,7 +87,7 @@ for subjectNum = 1:24
         data = cell2table(runTrials, 'VariableNames', {'Motion1', 'Motion2', 'Color1', 'Color2', 'Orientation1', 'Orientation2'});
 
         % Write table to CSV file
-        writetable(data, sprintf('sub-%02d_run-%02d_IOG.csv', subjectNum, runIdx));
+        writetable(data, fullfile(subFolder,sprintf('sub-%02d_run-%02d_conditions.csv', subjectNum, runIdx)));
     end
 end
 end
