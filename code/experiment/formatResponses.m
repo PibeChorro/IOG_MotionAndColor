@@ -20,7 +20,7 @@ function [sortedResultsTable, success] = formatResponses(get,ptb)
 %   artificial key release at the end
 
 try
-    % get rid of keys that are not response keys for the task
+
     get.data.timeDown   (find(~ismember(get.data.idDown,[ptb.Keys.monocular ptb.Keys.interocular]))) = [];
     get.data.timeUp     (find(~ismember(get.data.idUp,  [ptb.Keys.monocular ptb.Keys.interocular]))) = [];
     get.data.idDown     (find(~ismember(get.data.idDown,[ptb.Keys.monocular ptb.Keys.interocular]))) = [];
@@ -32,20 +32,21 @@ try
     condition    = {};   % which stimulus was shown
     monocular    = {};   % whether the percept was monocular
     interocular = {};    % whether the percept was interocular
-    durations   = [];   % how long was a percept
+    durations   = [];   % how long was the percept
     onsets      = [];   % when did the percept start
     keyAdded    = [];   % a column of zeros that only has a one in the end if we artificially added a key release
 
     % for each trial
-    for trl = 1:length(get.data.stimOnset)
+    for trl = 1:length(get.data.trialOnset)
         % do we add an artificial key release at the end?
         artificialKeyreleases   = false;
         % was there any button pressed during the trial?
         anyButtonPressed        = true;
         %% get key presses during trial
-        stimOnset   = get.data.stimOnset(trl);
-        stimOffset  = get.data.stimOffset(trl);
+        stimOnset   = get.data.trialOnset(trl);
+        stimOffset  = get.data.trialOffset(trl);
 
+        % TODO: add stim offset
         trialKeyTimeDown    = intersect(find(get.data.timeDown >= stimOnset), ...
             find(get.data.timeDown <= stimOffset));
         trialKeyTimeUp      = intersect(find(get.data.timeUp >= stimOnset), ...
@@ -181,8 +182,8 @@ try
             if monocularTimeSeries(end)
                 monocularOffsetIndices = [monocularOffsetIndices length(monocularTimeSeries)];
             end
-            monocularOnsets = timeVector(monocularOnsetIndices) - get.data.stimOnset(1);
-            monocularOffsets = timeVector(monocularOffsetIndices) - get.data.stimOnset(1);
+            monocularOnsets = timeVector(monocularOnsetIndices) - get.data.trialOnset(1);
+            monocularOffsets = timeVector(monocularOffsetIndices) - get.data.trialOnset(1);
             monocularDurations = monocularOffsets - monocularOnsets;
     
             interOcularTransitions = diff(interOcularTimeSeries>0);
@@ -195,8 +196,8 @@ try
             if interOcularTimeSeries(end)
                 interOcularOffsetIndices = [interOcularOffsetIndices length(interOcularTimeSeries)];
             end
-            interOcularOnsets = timeVector(interOcularOnsetIndices) - get.data.stimOnset(1);
-            interOcularOffsets = timeVector(interOcularOffsetIndices) - get.data.stimOnset(1);
+            interOcularOnsets = timeVector(interOcularOnsetIndices) - get.data.trialOnset(1);
+            interOcularOffsets = timeVector(interOcularOffsetIndices) - get.data.trialOnset(1);
             interOcularDurations = interOcularOffsets - interOcularOnsets;
     
             mixedTransitions = diff(mixedTimeSeries>0);
@@ -209,8 +210,8 @@ try
             if mixedTimeSeries(end)
                 mixedOffsetIndices = [mixedOffsetIndices length(mixedTimeSeries)];
             end
-            mixedOnsets = timeVector(mixedOnsetIndices) - get.data.stimOnset(1);
-            mixedOffsets = timeVector(mixedOffsetIndices) - get.data.stimOnset(1);
+            mixedOnsets = timeVector(mixedOnsetIndices) - get.data.trialOnset(1);
+            mixedOffsets = timeVector(mixedOffsetIndices) - get.data.trialOnset(1);
             mixedDurations = mixedOffsets - mixedOnsets;
 
             % store in arrays
@@ -244,8 +245,6 @@ try
             warning('No key was pressed in trial %u\n', trl);
         end
         condition = [condition; repmat({get.data.stimuli(trl)},numSwitches,1)];
-        interocular = [interocular; repmat({get.data.interocular(trl)}, numSwitches,1)];
-        monocular = [monocular; repmat({get.data.monocular(trl)},numSwitches,1)];
 
         % was an artificial key press added?
         addedRelease = zeros(numSwitches,1);
@@ -255,7 +254,7 @@ try
         keyAdded = [keyAdded; addedRelease];
 
     end
-    resultsTable = table(condition, percepts, onsets, durations, monocular);
+    resultsTable = table(condition, percepts, onsets, durations);
     sortedResultsTable = sortrows(resultsTable, 3);
     % add the information whether or not an artificial key release was
     % added here, so that it does not get mixed by the sorting process

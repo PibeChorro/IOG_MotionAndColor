@@ -37,6 +37,7 @@ design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
 design.whiteBackgroundInDegrees = 2.5;
+design.useET = false;
 
 design.stimSizeInPixelsX        = round(ptb.PixPerDegWidth*design.stimSizeInDegrees);
 design.stimSizeInPixelsY        = round(ptb.PixPerDegHeight*design.stimSizeInDegrees);
@@ -71,7 +72,7 @@ ptb.Keys.monocular = ptb.Keys.left;
 ptb.Keys.interocular = ptb.Keys.right;
 
 %% PARTICIPANT INFORMATION
-
+get = struct;
 % Initialize participantInfo structure
 participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
 
@@ -281,9 +282,9 @@ for trial = 1:4
     end
 
     % get timing of trial onset
-    trialOnset = GetSecs;
+    get.data.trialOnset(trial) = GetSecs;
     % updating the x arrays 
-    while vbl - trialOnset < design.stimulusPresentationTime
+    while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
 
         xHorizontal = xHorizontal + Motion1 * design.stepSize;
         xVertical = xVertical + Motion2 * design.stepSize;
@@ -344,6 +345,7 @@ for trial = 1:4
         Screen('Close', tex1Other);
         Screen('Close', tex2Other);
     end
+    get.data.trialOffset(trial) = GetSecs;
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
     Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
             ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
@@ -356,65 +358,9 @@ for trial = 1:4
     WaitSecs(design.ITI)
 end
 
-
-%% GET KEYBOARD RESPONSES
-
-% Ensure the keyboard queue is stopped
-KbQueueStop(ptb.Keyboard2);
-
-% Initialize data structure to store keyboard events
-get.data = struct('idDown', [], 'timeDown', [], 'idUp', [], 'timeUp', []);
-
-% Inside the loop where you process key events
-while KbEventAvail(ptb.Keyboard2)
-    [evt, ~] = KbEventGet(ptb.Keyboard2);
-
-    if evt.Pressed == 1 % for key presses
-        % Print the interpreted key value for debugging
-        keyName = KbName(evt.Keycode);
-
-        % Remove special characters associated with the Shift key
-        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
-
-        disp(['Pressed key: ' keyName]);
-
-        % Convert keyName to a cell array before concatenation
-        get.data.idDown   = [get.data.idDown; {keyName}];
-        get.data.timeDown = [get.data.timeDown; GetSecs];
-
-    else % for key releases
-        % Print the interpreted key value for debugging
-        keyName = KbName(evt.Keycode);
-
-        % Remove special characters associated with the Shift key
-        keyName = regexprep(keyName, '[!@#$%^&*()_+{}|:"<>?~]', '');
-
-        disp(['Released key: ' keyName]);
-
-        % Convert keyName to a cell array before concatenation
-        get.data.idUp   = [get.data.idUp; {keyName}];
-        get.data.timeUp = [get.data.timeUp; GetSecs];
-    end
-end
-
-% Ensure that both idDown and idUp have the same length
-minLength = min(length(get.data.idDown), length(get.data.idUp));
-get.data.idDown = get.data.idDown(1:minLength);
-get.data.idUp = get.data.idUp(1:minLength);
-
-% Determine eye condition based on subjectNumber
-% Save keyboard events to the CSV file
-keyboardFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_keyboard_data.csv', subjectNumber));
-keyboardData = table(get.data.idDown, get.data.timeDown - trialOnset, get.data.idUp, get.data.timeUp - trialOnset, ...
-                      'VariableNames', {'PressedKey', 'PressTime', 'ReleasedKey', 'ReleaseTime'});
-writetable(keyboardData, keyboardFileName);
-
-try
-    formatResponses(get,ptb)
-catch KEYBOARDRESPONSERROR
-    close all;
-    sca;
-    rethrow(KEYBOARDRESPONSERROR);
-end
+%% saving data
+get.end = 'Success';
+get.participantsInfo = participantInfo;
+savedata(get,ptb,design)
 end
 end
