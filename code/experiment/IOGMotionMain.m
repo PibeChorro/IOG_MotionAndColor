@@ -7,7 +7,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'Sarah Laptop';
+    setUp = 'CIN-Mac-Setup';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -139,12 +139,11 @@ else
 end
 
 % Specify the number of runs for your experiment
-numRuns = 1;  % Adjust this based on your experiment
+numRuns = 8;  % Adjust this based on your experiment
 
 % Create CSV files for each run inside the subject folder
-% Create CSV files for each run inside the subject folder
 for runNumber = 1:numRuns
-    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run%02d.csv', subjectNumber, runNumber));
+    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run-%02d.csv', subjectNumber, runNumber));
     
     % Check if CSV file already exists
     if exist(runFileName, 'file')
@@ -159,7 +158,6 @@ for runNumber = 1:numRuns
     
     % Write combined data to the CSV file
     writetable(struct2table(participantInfo), runFileName);
-end
 
 
 %% INSTRUCTIONS:
@@ -188,8 +186,9 @@ end
 
 %% DATA READING:
 
-try
-    data = readtable('path to subject specific and run specific csv file');
+try   
+    data = readtable("rawdata/sub-01/sub-01_run-01_conditions.csv");
+
 catch readingError
     sca;
     rethrow(readingError);
@@ -245,6 +244,30 @@ xVertical(:,:,4) = xVertical(:,:,1);
 vbl = Screen('Flip',ptb.window);
 
 for trial = 1:4
+    if any(strcmp(data.Motion1(trial), 'Upward'))
+        Motion1 = 1;
+
+        if any(strcmp(data.Motion2(trial), 'Rightward'))
+            Motion2 = 1;
+        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
+            Motion2 = -1;
+        end
+
+    elseif any(strcmp(data.Motion1(trial), 'Downward'))
+        Motion1 = -1;
+
+        if any(strcmp(data.Motion2(trial), 'Rightward'))
+            Motion2 = 1;
+        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
+            Motion2 = -1;
+        end
+        
+    elseif any(strcmp(data.Motion1(trial), 'No Motion'))
+        Motion1 = 0;
+        Motion2 = 0;
+    else
+        error('Impossible motion');
+    end
 
     % get color indices for gratings
     if strcmp(data.Color2(trial), 'Red')
@@ -253,38 +276,20 @@ for trial = 1:4
     elseif strcmp(data.Color2(trial), 'Green')
         turnoffIndicesVertical = [1 3 4];
         turnoffIndicesHorizontal = 2:4;
-    else
+    elseif strcmp(data.Color1(trial),'Black')
         turnoffIndicesVertical = 4;
         turnoffIndicesHorizontal = 4;
+    else
+        error('Impossible color')
     end
 
     % get timing of trial onset
     trialOnset = GetSecs;
     % updating the x arrays 
     while vbl - trialOnset < design.stimulusPresentationTime
-        if any(strcmp(data.Motion1(trial), 'Leftward')) || any(strcmp(data.Motion1(trial), 'Downward'))
-            data.Motion1 = -1;
-            if any(strcmp(data.Motion2(trial), 'Leftward')) || any(strcmp(data.Motion2(trial), 'Downward'))
-                data.Motion2 = -1;
-            else
-                data.Motion2 = 1;
-            end
-        elseif any(strcmp(data.Motion1(trial), 'Rightward')) || any(strcmp(data.Motion1(trial), 'Upward'))
-            data.Motion1 = 1;
-            if any(strcmp(data.Motion2(trial), 'Leftward')) || any(strcmp(data.Motion1(trial), 'Downward'))
-                data.Motion2 = -1;
-            else
-                data.Motion2 = 1;
-            end
-        elseif any(strcmp(data.Motion1(trial), 'No Motion'))
-            data.Motion1 = 0;
-            data.Motion2 = 0;
-        else
-            error('Impossible');
-        end
 
-        xHorizontal = xHorizontal + data.Motion1(trial) * design.stepSize;
-        xVertical = xVertical + data.Motion2(trial) * design.stepSize;
+        xHorizontal = xHorizontal + Motion1 * design.stepSize;
+        xVertical = xVertical + Motion2 * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
@@ -414,5 +419,5 @@ catch KEYBOARDRESPONSERROR
     sca;
     rethrow(KEYBOARDRESPONSERROR);
 end
-
+end
 end
