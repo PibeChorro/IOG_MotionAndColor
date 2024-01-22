@@ -15,3 +15,7 @@ code/experiment/data/.DS_Store
 
 *.csv
 code/experiment/openExperimentWindow.m
+
+data/
+
+rawdata/
