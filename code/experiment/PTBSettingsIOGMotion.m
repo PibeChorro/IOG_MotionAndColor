@@ -160,6 +160,8 @@ PsychImaging('PrepareConfiguration');                                   % standa
 switch ptb.SetUp
     case 'CIN-personal'
         [ptb.window, ptb.windowRect] = PsychImaging('OpenWindow', ptb.screenNumber, ptb.BackgroundColor, [0 0 1920 1200], [],[],4); 
+        ptb.FontSize = Screen('TextSize', ptb.window, 24);
+        ptb.FontStyle = Screen('TextStyle', ptb.window, 0);
         % Real world variable
         ptb.DistToMonitor   = 500;  % Distance to monitor in mm (measured by hand) - REMEASURE
         ptb.widthMonitor    = 153;  % monitor width measured by hand - REMEASURE
@@ -169,6 +171,7 @@ switch ptb.SetUp
         [ptb.window, ptb.windowRect] = PsychImaging('OpenWindow', ptb.screenNumber, ptb.BackgroundColor, [], [],[],4);
         
         ptb.FontSize = Screen('TextSize', ptb.window, 24);
+        ptb.FontStyle = Screen('TextStyle', ptb.window, 0);
         % Real world variable
         ptb.DistToMonitor   = 700;  % Distance to monitor in mm (measured by hand)
         ptb.widthMonitor    = 600;  % monitor width measured by hand

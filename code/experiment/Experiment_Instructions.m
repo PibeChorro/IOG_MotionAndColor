@@ -23,12 +23,6 @@ instructionsArray_2 = {
 
 for inst1 = 1:length(instructionsArray_1)
     TextDisplay = instructionsArray_1{inst1};
-
-%   framesize = max([ptb.screenXpixels, ptb.screenYpixels])/3;
-    %         Screen('FillRect', ptb.window, [0.5 0.5 0.5], ptb.windowRect);
-    Screen('TextSize', ptb.window, 15);
-    %         Screen('TextFont', ptb.window, 'Times');
-    Screen('TextStyle', ptb.window, 0);
     
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
     
@@ -48,22 +42,8 @@ for inst1 = 1:length(instructionsArray_1)
     WaitSecs(0.5);
 end
 
-% try
-%     alignFusion(ptb, design)
-% catch alignFusionError
-%     sca;
-%     close all;
-%     rethrow(alignFusionError);
-% end
-
 for inst2 = 1:length(instructionsArray_2)
     TextDisplay = instructionsArray_2{inst2};
-
-%   framesize = max([ptb.screenXpixels, ptb.screenYpixels])/3;
-    %         Screen('FillRect', ptb.window, [0.5 0.5 0.5], ptb.windowRect);
-    Screen('TextSize', ptb.window, 15);
-    %         Screen('TextFont', ptb.window, 'Times');
-    Screen('TextStyle', ptb.window, 0);
     
     Screen('SelectStereoDrawBuffer', ptb.window, 0);
     

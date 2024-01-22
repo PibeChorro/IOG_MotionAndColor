@@ -7,14 +7,12 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-Mac-Setup';
+    setUp = 'CIN-experimentroom';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
 
 % Opening psychtoolbox function ptb.
-
-
  ptb = PTBSettingsIOGMotion(setUp);
 
 
@@ -31,8 +29,8 @@ design = getInstructions();
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
 
-design.stimulusPresentationTime = 5 - ptb.ifi/2;
-design.ITI                      = 3 - ptb.ifi/2;
+design.stimulusPresentationTime = 60 - ptb.ifi/2;
+design.ITI                      = 10 - ptb.ifi/2;
 design.contrast                 = 0.5;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
 design.stimSizeInDegrees        = 1.7;
@@ -159,7 +157,18 @@ for runNumber = 1:numRuns
     % Write combined data to the CSV file
     writetable(struct2table(participantInfo), runFileName);
 
+%% FUSION TEST:
 
+% Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
+
+try
+    alignFusion(ptb, design);
+catch alignFusionError
+    sca;
+    rethrow(alignFusionError);
+end
+
+WaitSecs(0.5);
 %% INSTRUCTIONS:
 
 % Experimental instructions with texts (using experimental function from another mat script).
@@ -172,22 +181,10 @@ catch instructionsError
     rethrow(instructionsError);
 end
 
-
-%% FUSION TEST:
-
-% Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
-
-try
-    alignFusion(ptb, design);
-catch alignFusionError
-    sca;
-    rethrow(alignFusionError);
-end
-
 %% DATA READING:
 
 try   
-    data = readtable("rawdata/sub-01/sub-01_run-01_conditions.csv");
+    data = readtable('../../rawdata/sub-01/sub-01_run-01_conditions.csv');
 
 catch readingError
     sca;
