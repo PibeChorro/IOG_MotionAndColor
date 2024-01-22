@@ -159,7 +159,6 @@ for runNumber = 1:numRuns
     
     % Write combined data to the CSV file
     writetable(struct2table(participantInfo), runFileName);
-    
 end
 
 
@@ -190,10 +189,10 @@ end
 %% DATA READING:
 
 try
-    data = runRandomization();
-catch randomizationError
+    data = readtable('path to subject specific and run specific csv file');
+catch readingError
     sca;
-    rethrow(randomizationError);
+    rethrow(readingError);
 end
 
     data = table2struct(data, 'toScalar', true);
@@ -277,9 +276,11 @@ for trial = 1:4
             else
                 data.Motion2 = 1;
             end
-        else
+        elseif any(strcmp(data.Motion1(trial), 'No Motion'))
             data.Motion1 = 0;
             data.Motion2 = 0;
+        else
+            error('Impossible');
         end
 
         xHorizontal = xHorizontal + data.Motion1(trial) * design.stepSize;
