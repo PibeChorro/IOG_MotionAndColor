@@ -25,9 +25,12 @@ function savedata(get,ptb,design)
     end
 
     % filename dependent on task [objects|gratings] and run [1-6]
-    fileName = 'sub-01_task-IOG_run-01'; %[get.sub '_task-' get.task sprintf('_run-%02d',get.runNr)];
+    fileName = sprintf('sub-%02d_task-IOG_run-%02d',get.subjectNumber,get.runNumber); %[get.sub '_task-' get.task sprintf('_run-%02d',get.runNr)];
 
-    get.subjectDirectory = '../../sourcedata/';
+    get.subjectDirectory = sprintf('../../sourcedata/sub-%02d', get.subjectNumber);
+    if ~exist(get.subjectDirectory, 'dir')
+        mkdir(get.subjectDirectory)
+    end
     
     % get the file
     if design.useET 

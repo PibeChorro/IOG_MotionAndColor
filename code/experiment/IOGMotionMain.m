@@ -7,7 +7,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-Mac-Setup';
+    setUp = 'CIN-experimentroom';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -31,8 +31,9 @@ design = getInstructions();
 
 design.stimulusPresentationTime = 6 - ptb.ifi/2;
 design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.5;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.contrast                 = 0.33;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
+design.scalingFactor            = 0.1;
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
@@ -101,18 +102,30 @@ while true
 end
 
 while true
-    subjectNumber = input('Enter subject number: ', 's');  % Read input as a string
+    get.subjectNumber = input('Enter subject number: ', 's');  % Read input as a string
     
     % Check if the input is a valid numeric value
-    if isempty(str2double(subjectNumber)) % checks if the entered string cannot be converted to a numeric value.
+    if isempty(str2double(get.subjectNumber)) % checks if the entered string cannot be converted to a numeric value.
         disp('Invalid input. Please enter a valid numeric value for the subject number.');
     else
-        subjectNumber = str2double(subjectNumber);  % Convert the valid input to a number
+        get.subjectNumber = str2double(get.subjectNumber);  % Convert the valid input to a number
         break;  % Exit the loop if a valid number is entered
     end
 end
 
-if mod(subjectNumber, 2) == 0 % if subjectNumber is divisible by 2 with 0 remainder (aka number is even)
+while true
+    get.runNumber = input('Enter run number: ', 's');  % Read input as a string
+    
+    % Check if the input is a valid numeric value
+    if isempty(str2double(get.runNumber)) % checks if the entered string cannot be converted to a numeric value.
+        disp('Invalid input. Please enter a valid numeric value for the subject number.');
+    else
+        get.runNumber = str2double(get.runNumber);  % Convert the valid input to a number
+        break;  % Exit the loop if a valid number is entered
+    end
+end
+
+if mod(get.subjectNumber, 2) == 0 % if subjectNumber is divisible by 2 with 0 remainder (aka number is even)
     ptb.Keys.left = ptb.Keys.monocular;
     ptb.Keys.right = ptb.Keys.interocular;
 else % if subjectNumber is not divisible without 0 remainders (aka number is odd)
@@ -121,33 +134,33 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
 end
 
 % Specify the number of runs for your experiment
-numRuns = 8;  % Adjust this based on your experiment
+% numRuns = 8;  % Adjust this based on your experiment
 
 % Create CSV files for each run inside the subject folder
-folderName = fullfile('../../rawdata/', sprintf('sub-%02d', subjectNumber));
+get.folderName = fullfile('../../rawdata/', sprintf('sub-%02d', get.subjectNumber));
 
 % Check if the folder exists, create it if it doesn't
-if ~exist(folderName, 'dir')
-    mkdir(folderName);
+if ~exist(get.folderName, 'dir')
+    mkdir(get.folderName);
 end
 
-for runNumber = 1:numRuns
-    runFileName = fullfile(folderName, sprintf('sub-%02d-run-%02d-subjectInfo.csv', subjectNumber, runNumber));
-    
-    % Check if CSV file already exists
-    if exist(runFileName, 'file')
-        userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
-            'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
-        if strcmpi(userResponse, 'no')
-            sca;
-            close all;
-            error('User chose not to proceed. Exiting.');
-        end
-    end
-    
-    % Write combined data to the CSV file
-    writetable(struct2table(participantInfo), runFileName);
-end
+% for runNumber = 1:numRuns
+%     runFileName = fullfile(get.folderName, sprintf('sub-%02d-run-%02d-subjectInfo.csv', get.subjectNumber, runNumber));
+%     
+%     % Check if CSV file already exists
+%     if exist(runFileName, 'file')
+%         userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
+%             'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
+%         if strcmpi(userResponse, 'no')
+%             sca;
+%             close all;
+%             error('User chose not to proceed. Exiting.');
+%         end
+%     end
+%     
+%     % Write combined data to the CSV file
+%     writetable(struct2table(participantInfo), runFileName);
+% end
 
 %% FUSION TEST:
 
@@ -164,9 +177,8 @@ WaitSecs(0.5);
 %% INSTRUCTIONS:
 
 % Experimental instructions with texts (using experimental function from another mat script).
-
 try
-    Experiment_Instructions(ptb);
+    Experiment_Instructions(ptb,get);
 catch instructionsError
     sca;
     close all;
@@ -230,9 +242,6 @@ xVertical(:,:,2) = xVertical(:,:,1);
 xVertical(:,:,3) = xVertical(:,:,1);
 xVertical(:,:,4) = xVertical(:,:,1);
 
-% get a Flip for timing
-vbl = Screen('Flip',ptb.window);
-
 for trial = 1:4
     if any(strcmp(data.Motion1(trial), 'Upward'))
         Motion1 = 1;
@@ -273,6 +282,17 @@ for trial = 1:4
         error('Impossible color')
     end
 
+    Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+
+    Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    Screen('DrawingFinished', ptb.window);
+    vbl = Screen('Flip', ptb.window);
+    WaitSecs(design.ITI);
+
     % get timing of trial onset
     get.data.trialOnset(trial) = GetSecs;
     % updating the x arrays 
@@ -282,10 +302,10 @@ for trial = 1:4
         xVertical = xVertical + Motion2 * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
-        horizontalGrating = sin(xHorizontal*0.3); % creates a sine-wave grating of spatial frequency 0.3
+        horizontalGrating = sin(xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
         leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
     
-        verticalGrating = sin(xVertical*0.3);
+        verticalGrating = sin(xVertical*design.scalingFactor);
         leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
 
         leftScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
@@ -338,20 +358,11 @@ for trial = 1:4
         Screen('Close', tex2Other);
     end
     get.data.trialOffset(trial) = GetSecs;
-    Screen('SelectStereoDrawBuffer', ptb.window, 0);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 1);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-    Screen('DrawingFinished', ptb.window);
-    vbl = Screen('Flip', ptb.window);
-    WaitSecs(design.ITI)
 end
 
 %% saving data
 get.end = 'Success';
 get.participantsInfo = participantInfo;
 savedata(get,ptb,design)
+Screen('CloseAll');
 end

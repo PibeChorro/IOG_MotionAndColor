@@ -8,7 +8,6 @@ ptb.SetUp = setUp;
 
 % Turn initial start screen from white to black
 Screen('Preference', 'VisualDebugLevel', 1);
-Screen('Preference', 'SkipSyncTests', 1);
 
 % Here we call some default settings for setting up Psychtoolbox
 PsychDefaultSetup(2);
@@ -32,6 +31,7 @@ ptb.Keys.no     = KbName('n');          ptb.KeyList1(ptb.Keys.no)    = double(1)
 ptb.Keys.debug  = 1;
 switch ptb.SetUp
     case 'CIN-personal'
+        Screen('Preference', 'SkipSyncTests', 1);
         % subject keys
         ptb.Keys.left   = KbName('LeftArrow');  ptb.KeyList2(ptb.Keys.left)  = double(1);
         ptb.Keys.right  = KbName('RightArrow'); ptb.KeyList2(ptb.Keys.right) = double(1);
@@ -82,6 +82,7 @@ switch ptb.SetUp
         fprintf('\n=> Experimentators keyboard Nr.: %u  %s \n',ptb.Keyboard1, productNamesExp{1});
 
     case 'CIN-Mac-Setup'
+        Screen('Preference', 'SkipSyncTests', 1);
         % subject keys
         ptb.Keys.left   = KbName('LeftArrow');  ptb.KeyList2(ptb.Keys.left)  = double(1);
         ptb.Keys.right  = KbName('RightArrow'); ptb.KeyList2(ptb.Keys.right) = double(1);
@@ -95,6 +96,7 @@ switch ptb.SetUp
         fprintf('\n=> Subjects keyboard Nr.: %u  %s \n',ptb.Keyboard2, productNames{1});
         fprintf('\n=> Experimenter keyboard Nr.: %u  %s \n',ptb.Keyboard2, productNames{1});
     case 'Sarah Laptop'
+        Screen('Preference', 'SkipSyncTests', 1);
         % subject keys
         ptb.Keys.left   = KbName('LeftArrow');  ptb.KeyList2(ptb.Keys.left)  = double(1);
         ptb.Keys.right  = KbName('RightArrow'); ptb.KeyList2(ptb.Keys.right) = double(1);
