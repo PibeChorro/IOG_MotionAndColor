@@ -7,7 +7,7 @@ function IOGMotionMain(setUp)
 % Setup input for the monitor being used.
 
 if nargin < 1
-    setUp = 'CIN-experimentroom';
+    setUp = 'CIN-Mac-Setup';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -29,8 +29,8 @@ design = getInstructions();
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
 
-design.stimulusPresentationTime = 60 - ptb.ifi/2;
-design.ITI                      = 10 - ptb.ifi/2;
+design.stimulusPresentationTime = 6 - ptb.ifi/2;
+design.ITI                      = 3 - ptb.ifi/2;
 design.contrast                 = 0.5;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
 design.stimSizeInDegrees        = 1.7;
@@ -120,29 +120,19 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.left = ptb.Keys.interocular;
 end
 
-% Create a folder named 'data' for the subjects
-folderName = fullfile('data', sprintf('sub-%02d', subjectNumber));
-
-if exist(folderName, 'dir')
-    % Folder already exists, ask for confirmation
-    userResponse = input('Warning: Folder for this subject already exists. Do you want to proceed? (yes/no): ', 's');
-    
-    if strcmpi(userResponse, 'no')
-        sca;
-        close all;
-        error('User chose not to proceed. Exiting.');
-    end
-else
-    % Folder doesn't exist, create it
-    mkdir(folderName);
-end
-
 % Specify the number of runs for your experiment
 numRuns = 8;  % Adjust this based on your experiment
 
 % Create CSV files for each run inside the subject folder
+folderName = fullfile('../../rawdata/', sprintf('sub-%02d', subjectNumber));
+
+% Check if the folder exists, create it if it doesn't
+if ~exist(folderName, 'dir')
+    mkdir(folderName);
+end
+
 for runNumber = 1:numRuns
-    runFileName = fullfile(folderName, sprintf('sub-%02d_task-IOG_run-%02d.csv', subjectNumber, runNumber));
+    runFileName = fullfile(folderName, sprintf('sub-%02d-run-%02d-subjectInfo.csv', subjectNumber, runNumber));
     
     % Check if CSV file already exists
     if exist(runFileName, 'file')
@@ -157,6 +147,7 @@ for runNumber = 1:numRuns
     
     % Write combined data to the CSV file
     writetable(struct2table(participantInfo), runFileName);
+end
 
 %% FUSION TEST:
 
@@ -193,6 +184,7 @@ catch readingError
 end
 
     data = table2struct(data, 'toScalar', true);
+    get.data = data;
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
@@ -362,5 +354,4 @@ end
 get.end = 'Success';
 get.participantsInfo = participantInfo;
 savedata(get,ptb,design)
-end
 end

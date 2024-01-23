@@ -26,6 +26,8 @@ function savedata(get,ptb,design)
 
     % filename dependent on task [objects|gratings] and run [1-6]
     fileName = 'sub-01_task-IOG_run-01'; %[get.sub '_task-' get.task sprintf('_run-%02d',get.runNr)];
+
+    get.subjectDirectory = '../../sourcedata/';
     
     % get the file
     if design.useET 
@@ -47,7 +49,7 @@ function savedata(get,ptb,design)
 
     if strcmp(get.end,'Finished with errors') % PRG: save in jsut one file.
         save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_ptb_error']),'ptb');
-        save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_log_error']),'log');
+        save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_get_error']),'get');
         save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_design_error']),'design');
         if design.useET
             unixStr=['mv ' get.edfFile ' ' fullfile(get.subjectDirectory, [fileName '_error.edf'])];
@@ -55,7 +57,7 @@ function savedata(get,ptb,design)
         end
     elseif strcmp(get.end,'Escape')
         save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_ptb_cancelled']),'ptb');
-        save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_log_cancelled']),'log'); 
+        save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_get_cancelled']),'get'); 
         save(fullfile(get.subjectDirectory, [fileName '_' char(datetime) '_design_cancelled']),'design');
         if design.useET
             unixStr=['mv ' get.edfFile ' ' fullfile(get.subjectDirectory, [fileName '_cancelled.edf'])];

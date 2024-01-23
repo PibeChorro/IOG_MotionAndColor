@@ -244,7 +244,7 @@ try
             numSwitches = 1;
             warning('No key was pressed in trial %u\n', trl);
         end
-        condition = [condition; repmat({get.data.stimuli(trl)},numSwitches,1)];
+        condition = [condition; repmat({get.data.Condition(trl)},numSwitches,1)];
 
         % was an artificial key press added?
         addedRelease = zeros(numSwitches,1);
