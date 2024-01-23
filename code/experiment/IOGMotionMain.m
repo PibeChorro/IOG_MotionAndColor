@@ -67,6 +67,26 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
+design.xHorizontal = meshgrid(1:314);
+design.xVertical = meshgrid(1:314);
+
+design.xHorizontal(:,:,2) = design.xHorizontal(:,:,1);
+design.xHorizontal(:,:,3) = design.xHorizontal(:,:,1);
+design.xHorizontal(:,:,4) = design.xHorizontal(:,:,1);
+
+design.xVertical(:,:,2) = design.xVertical(:,:,1);
+design.xVertical(:,:,3) = design.xVertical(:,:,1);
+design.xVertical(:,:,4) = design.xVertical(:,:,1);
+
+%% ALPHA MASKS -- MONDREAN MASKS
+
+design.alphaMask1 = zeros(size(design.xHorizontal));
+design.alphaMask2 = design.alphaMask1;
+
+% TODO (VP): make alpha mask values dynamic
+design.alphaMask1(:,1:157) = 1;
+design.alphaMask2(:,158:end) = 1;
+
 %% DEFINE PTB KEYS STRUCT FOR KEYBOARD RESPONSE DATA
 
 ptb.Keys.monocular = ptb.Keys.left;
@@ -133,9 +153,6 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.left = ptb.Keys.interocular;
 end
 
-% Specify the number of runs for your experiment
-% numRuns = 8;  % Adjust this based on your experiment
-
 % Create CSV files for each run inside the subject folder
 get.folderName = fullfile('../../rawdata/', sprintf('sub-%02d', get.subjectNumber));
 
@@ -143,24 +160,6 @@ get.folderName = fullfile('../../rawdata/', sprintf('sub-%02d', get.subjectNumbe
 if ~exist(get.folderName, 'dir')
     mkdir(get.folderName);
 end
-
-% for runNumber = 1:numRuns
-%     runFileName = fullfile(get.folderName, sprintf('sub-%02d-run-%02d-subjectInfo.csv', get.subjectNumber, runNumber));
-%     
-%     % Check if CSV file already exists
-%     if exist(runFileName, 'file')
-%         userResponse = input(['Warning: CSV file for this subject and run already exists. ' ...
-%             'Do you want to proceed and overwrite the existing file? (yes/no): '], 's');
-%         if strcmpi(userResponse, 'no')
-%             sca;
-%             close all;
-%             error('User chose not to proceed. Exiting.');
-%         end
-%     end
-%     
-%     % Write combined data to the CSV file
-%     writetable(struct2table(participantInfo), runFileName);
-% end
 
 %% FUSION TEST:
 
@@ -217,30 +216,11 @@ end
 % TODO (VP): change limit of array from arbitrary 314 to a well thought
 % through value
 
-[xHorizontal, xVertical] = meshgrid(1:314);
-
-%% ALPHA MASKS -- MONDREAN MASKS
-
-alphaMask1  = zeros(size(xHorizontal));
-alphaMask2 = alphaMask1;
-
-% TODO (VP): make alpha mask values dynamic
-alphaMask1(:,1:157) = 1;
-alphaMask2(:,158:end) = 1;
 
 %%  INTRODUCTION OF THE CASES/CONDITIONS:
 
 % Introducing the different conditions of the experiment along with assigned variables
 % Create 4D matrices for horizontal and vertical gratings
-% figure out issue with the zeros and grating formation here
-
-xHorizontal(:,:,2) = xHorizontal(:,:,1);
-xHorizontal(:,:,3) = xHorizontal(:,:,1);
-xHorizontal(:,:,4) = xHorizontal(:,:,1);
-
-xVertical(:,:,2) = xVertical(:,:,1);
-xVertical(:,:,3) = xVertical(:,:,1);
-xVertical(:,:,4) = xVertical(:,:,1);
 
 for trial = 1:4
     if any(strcmp(data.Motion1(trial), 'Upward'))
@@ -298,8 +278,8 @@ for trial = 1:4
     % updating the x arrays 
     while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
 
-        xHorizontal = xHorizontal + Motion1 * design.stepSize;
-        xVertical = xVertical + Motion2 * design.stepSize;
+        xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
+        xVertical = design.xVertical + Motion2 * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
         horizontalGrating = sin(xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
@@ -319,7 +299,6 @@ for trial = 1:4
        
         rightScaledHorizontalGrating(:,:,4) = alphaMask2;
         rightScaledVerticalGrating(:,:,4) = alphaMask1;
-
 
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
