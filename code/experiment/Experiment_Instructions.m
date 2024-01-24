@@ -1,72 +1,14 @@
 function Experiment_Instructions(ptb,get,design)
-
-design.stimulusPresentationTime = 6 - ptb.ifi/2;
-design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.33;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
-design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
-design.scalingFactor            = 0.1;
-design.stimSizeInDegrees        = 1.7;
-design.fixCrossInDegrees        = 0.25;
-design.mondreanInDegrees        = 5;
-design.whiteBackgroundInDegrees = 2.5;
-design.useET = false;
-
-design.stimSizeInPixelsX        = round(ptb.PixPerDegWidth*design.stimSizeInDegrees);
-design.stimSizeInPixelsY        = round(ptb.PixPerDegHeight*design.stimSizeInDegrees);
-
-design.fixCrossInPixelsX        = round(ptb.PixPerDegWidth*design.fixCrossInDegrees);
-design.fixCrossInPixelsY        = round(ptb.PixPerDegHeight*design.fixCrossInDegrees);
-
-design.mondreanInPixelsX        = int16(round(ptb.PixPerDegWidth*design.mondreanInDegrees));
-design.mondreanInPixelsY        = int16(round(ptb.PixPerDegHeight*design.mondreanInDegrees));
-mondreanMasks = make_mondrian_masks(double(design.mondreanInPixelsX), ...
-    double(design.mondreanInPixelsY),1,1,1);
-design.thisMask = rgb2gray(mondreanMasks{1});
-backGroundTexture = Screen('MakeTexture', ptb.window, design.thisMask);
-
-% resize stimuli
-% define a rectangle where the stimulus is drawn
-design.destinationRect = [...
-    ptb.screenXpixels/2-design.stimSizeInPixelsX/2 ...
-    ptb.screenYpixels/2-design.stimSizeInPixelsY/2 ...
-    ptb.screenXpixels/2+design.stimSizeInPixelsX/2 ...
-    ptb.screenYpixels/2+design.stimSizeInPixelsY/2];
-
-% fixation cross
-design.fixCrossCoords = [
-    -design.fixCrossInPixelsX/2 design.fixCrossInPixelsX/2 0 0; ...
-    0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
-    ];
-
 [xVertical, xHorizontal] = meshgrid(1:314);
 
-%% ALPHA MASKS -- MONDREAN MASKS
-
-alphaMask1 = zeros(size(xHorizontal));
-alphaMask2 = alphaMask1;
-
-% TODO (VP): make alpha mask values dynamic
-halfColumns = round(size(alphaMask1, 2) / 2);
-
-% Left half: vertical in the upper part, horizontal in the lower part
-alphaMask1(:, 1:halfColumns) = 0;  % Entire left half
-alphaMask1(1:round(size(alphaMask1, 1)/2), halfColumns+1:end) = 1;
-alphaMask1(1:round(size(alphaMask1, 1)/2), 1:halfColumns) = 1;
+alphaMaskPieceMeal1 = zeros(size(xHorizontal));
+halfColumns = round(size(alphaMaskPieceMeal1, 2) / 2);
 
 % Right half: horizontal in the upper part, vertical in the lower part
-alphaMask2(:, halfColumns+1:end) = 0;
-alphaMask2(1:round(size(alphaMask2, 1)/2), 1:halfColumns) = 1; 
-alphaMask2(round(size(alphaMask2, 1)/2)+1:end, halfColumns+1:end) = 1;
+alphaMaskPieceMeal1(1:round(size(alphaMaskPieceMeal1, 1)/2), 1:halfColumns) = 1; 
+alphaMaskPieceMeal1(round(size(alphaMaskPieceMeal1, 1)/2)+1:end, halfColumns+1:end) = 1;
 
-figure;
-
-subplot(1, 2, 1);
-imshow(alphaMask1);
-title('Alpha Mask 1');
-
-subplot(1, 2, 2);
-imshow(alphaMask2);
-title('Alpha Mask 2');
+alphaMaskPieceMeal2 = ~alphaMaskPieceMeal1;
 
 xHorizontal(:,:,2) = xHorizontal(:,:,1);
 xHorizontal(:,:,3) = xHorizontal(:,:,1);
@@ -75,19 +17,6 @@ xHorizontal(:,:,4) = xHorizontal(:,:,1);
 xVertical(:,:,2) = xVertical(:,:,1);
 xVertical(:,:,3) = xVertical(:,:,1);
 xVertical(:,:,4) = xVertical(:,:,1);
-
-Screen('SelectStereoDrawBuffer', ptb.window, 0);
-Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
-Screen('SelectStereoDrawBuffer', ptb.window, 1);
-Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-Screen('DrawingFinished', ptb.window);
-Screen('Flip', ptb.window);
-
-xHorizontal = xHorizontal + 1 * design.stepSize;
-xVertical = xVertical - 1 * design.stepSize;
 
 horizontalGrating = sin(xHorizontal*design.scalingFactor); 
 ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
@@ -101,25 +30,36 @@ turnoffIndicesHorizontal = 4;
 ScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
 ScaledVerticalGrating(:,:,turnoffIndicesVertical) = 0;
 
-ScaledHorizontalGrating(:,:,4)  = alphaMask2;
-ScaledVerticalGrating(:,:,4) = alphaMask1;
-
 
 %% CREATION OF STIMULI AND CLOSING SCREENS
 % Creation of experimental stimuli with different features (textures, colors…)
 
 % Select left image buffer for true color image:
 Screen('SelectStereoDrawBuffer', ptb.window, 0);
-Screen('DrawTexture', ptb.window, backGroundTexture);
 
 tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
+Screen('DrawTexture', ptb.window, tex1, [], [10 10 40 40]);
 
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
+Screen('DrawTexture', ptb.window, tex2, [], [50 10 50 40]);
 
-Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-    ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+ScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
+ScaledVerticalGrating(:,:,4)    = design.alphaMask2;
+
+tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1, [], [10 50 40 90]);
+
+tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2, [], [50 50 50 90]);
+
+ScaledHorizontalGrating(:,:,4)  = alphaMaskPieceMeal1;
+ScaledVerticalGrating(:,:,4)    = alphaMaskPieceMeal2;
+
+tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1, [], [100 60 140 100]);
+
+tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2, [], [100 60 140 100]);
 
 Screen('DrawingFinished', ptb.window);
 Screen('Flip', ptb.window);

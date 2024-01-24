@@ -70,6 +70,9 @@ design.fixCrossCoords = [
 design.xHorizontal = meshgrid(1:314);
 design.xVertical = meshgrid(1:314);
 
+design.alphaMask1 = zeros(size(design.xHorizontal));
+design.alphaMask2 = design.alphaMask1;
+
 design.xHorizontal(:,:,2) = design.xHorizontal(:,:,1);
 design.xHorizontal(:,:,3) = design.xHorizontal(:,:,1);
 design.xHorizontal(:,:,4) = design.xHorizontal(:,:,1);
@@ -80,8 +83,6 @@ design.xVertical(:,:,4) = design.xVertical(:,:,1);
 
 %% ALPHA MASKS -- MONDREAN MASKS
 
-design.alphaMask1 = zeros(size(design.xHorizontal));
-design.alphaMask2 = design.alphaMask1;
 
 % TODO (VP): make alpha mask values dynamic
 design.alphaMask1(:,1:157) = 1;
@@ -177,7 +178,7 @@ WaitSecs(0.5);
 
 % Experimental instructions with texts (using experimental function from another mat script).
 try
-    Experiment_Instructions(ptb,get);
+    Experiment_Instructions(ptb,get,design);
 catch instructionsError
     sca;
     close all;
@@ -294,11 +295,11 @@ for trial = 1:4
         rightScaledHorizontalGrating = leftScaledHorizontalGrating;
         rightScaledVerticalGrating = leftScaledVerticalGrating;
     
-        leftScaledHorizontalGrating(:,:,4)  = alphaMask1;
-        leftScaledVerticalGrating(:,:,4) = alphaMask2;
+        leftScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
+        leftScaledVerticalGrating(:,:,4) = design.alphaMask2;
        
-        rightScaledHorizontalGrating(:,:,4) = alphaMask2;
-        rightScaledVerticalGrating(:,:,4) = alphaMask1;
+        rightScaledHorizontalGrating(:,:,4) = design.alphaMask2;
+        rightScaledVerticalGrating(:,:,4) = design.alphaMask1;
 
         %% CREATION OF STIMULI AND CLOSING SCREENS
         % Creation of experimental stimuli with different features (textures, colors…)
