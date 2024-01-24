@@ -9,24 +9,32 @@ halfColumns = round(size(alphaMaskPieceMeal1, 2) / 2);
 alphaMaskPieceMeal1(1:round(size(alphaMaskPieceMeal1, 1)/2), 1:halfColumns) = 1; 
 alphaMaskPieceMeal1(round(size(alphaMaskPieceMeal1, 1)/2)+1:end, halfColumns+1:end) = 1;
 
-halfScreenX = ptb.screenXpixels/2;
-halfScreenY = ptb.screenYpixels/2;
+fullScreenX = ptb.screenXpixels;
+fullScreenY = ptb.screenYpixels;
 
-destinationRectHorizontal = [halfScreenX/4 halfScreenX/2 halfScreenY/2 halfScreenX];
-destinationRectVertical = [halfScreenX+50 halfScreenX/2 halfScreenY+50 halfScreenX];
-destinationRectLeftEye = [halfScreenX/4 halfScreenY halfScreenY/2 halfScreenX*2];
-destinationRectRightEye = [halfScreenX+50 halfScreenY halfScreenX*2 halfScreenX*2];
-destinationRectPieceMeal = [halfScreenX-50 halfScreenX halfScreenX+50 halfScreenY];
+destinationRectHorizontal   = [...
+    fullScreenX*5/16 fullScreenY*3/16 ...
+    fullScreenX*7/16 fullScreenY*5/16];
+destinationRectVertical     = [...
+    fullScreenX*9/16 fullScreenY*3/16 ...
+    fullScreenX*11/16 fullScreenY*5/16];
+destinationRectLeftEye      = [...
+    fullScreenX*1/8 fullScreenY*5/8 ...
+    fullScreenX*3/8 fullScreenY*7/8];
+destinationRectRightEye     = [...
+    fullScreenX*5/8 fullScreenY*5/8 ...
+    fullScreenX*7/8 fullScreenY*7/8];
+destinationRectPieceMeal    = [...
+    fullScreenX-50 fullScreenX ...
+    fullScreenX+50 fullScreenY];
 
 alphaMaskPieceMeal2 = ~alphaMaskPieceMeal1;
 
 xHorizontal(:,:,2) = xHorizontal(:,:,1);
 xHorizontal(:,:,3) = xHorizontal(:,:,1);
-xHorizontal(:,:,4) = xHorizontal(:,:,1);
 
 xVertical(:,:,2) = xVertical(:,:,1);
 xVertical(:,:,3) = xVertical(:,:,1);
-xVertical(:,:,4) = xVertical(:,:,1);
 
 horizontalGrating = sin(xHorizontal*design.scalingFactor); 
 ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
@@ -39,6 +47,57 @@ ScaledVerticalGrating = ((verticalGrating1+1)/2) * design.contrast;
 
 % Select left image buffer for true color image:
 Screen('SelectStereoDrawBuffer', ptb.window, 0);
+
+% whole horizontal grating
+tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
+
+% whole vertical grating
+tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2, [], destinationRectVertical);
+
+% set alpha masks for horizontal and vertical grating
+ScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
+ScaledVerticalGrating(:,:,4)    = design.alphaMask2;
+
+% gratings shown on left - horizontal
+tex1Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectLeftEye);
+
+% graing shown on left - vertical
+tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectLeftEye);
+
+% swap alpha masks
+ScaledHorizontalGrating(:,:,4)  = design.alphaMask2;
+ScaledVerticalGrating(:,:,4)    = design.alphaMask1;
+
+% grating shown right - horizontal
+tex1Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectRightEye);
+
+% grating shown right - vertical
+tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectRightEye);
+
+% swap alpha masks
+ScaledHorizontalGrating(:,:,4)  = alphaMaskPieceMeal1;
+ScaledVerticalGrating(:,:,4)    = alphaMaskPieceMeal2;
+
+tex11Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
+
+tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
+% 
+horizontalGrating = sin(xHorizontal*design.scalingFactor); 
+ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
+
+verticalGrating1 = sin(xVertical*design.scalingFactor);
+ScaledVerticalGrating = ((verticalGrating1+1)/2) * design.contrast;
+
+% Select left image buffer for true color image:
+Screen('SelectStereoDrawBuffer', ptb.window, 1);
 
 tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
