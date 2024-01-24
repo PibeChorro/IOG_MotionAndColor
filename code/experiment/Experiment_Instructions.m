@@ -1,5 +1,13 @@
 function Experiment_Instructions(ptb,get,design)
 
+if mod(get.subjectNumber,2) == 0
+    monocular = 'left';
+    binocular = 'right';
+else
+    monocular = 'right';
+    binocular = 'left';
+end
+
 [xVertical, xHorizontal] = meshgrid(1:314);
 
 alphaMaskPieceMeal1 = zeros(size(xHorizontal));
@@ -13,16 +21,16 @@ fullScreenX = ptb.screenXpixels;
 fullScreenY = ptb.screenYpixels;
 
 destinationRectHorizontal   = [...
-    fullScreenX*5/16 fullScreenY*3/16 ...
+    fullScreenX*5/16 fullScreenY*1/32 ...
     fullScreenX*7/16 fullScreenY*5/16];
 destinationRectVertical     = [...
-    fullScreenX*9/16 fullScreenY*3/16 ...
+    fullScreenX*9/16 fullScreenY*1/32 ...
     fullScreenX*11/16 fullScreenY*5/16];
 destinationRectLeftEye      = [...
-    fullScreenX*1/8 fullScreenY*5/8 ...
+    fullScreenX*1/8 fullScreenY*4/8 ...
     fullScreenX*3/8 fullScreenY*7/8];
 destinationRectRightEye     = [...
-    fullScreenX*5/8 fullScreenY*5/8 ...
+    fullScreenX*5/8 fullScreenY*4/8 ...
     fullScreenX*7/8 fullScreenY*7/8];
 destinationRectPieceMeal    = [...
     fullScreenX-50 fullScreenX ...
@@ -52,6 +60,22 @@ Screen('SelectStereoDrawBuffer', ptb.window, 0);
 tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
 
+
+textHorizontal = ['2. Two gratings with horizontal and vertical orientations\n' ...
+    ' next to each other:\n' ...
+    'If you perceive any of the above stimuli,\n ' ...
+    '       Keep on pressing the ' binocular ' key'];
+
+textSize = 15;
+textColor = [0 0 0];
+
+textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90; % Adjust the offset as needed
+textHY = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110; % Adjust the offset as needed
+
+% Draw the text
+Screen('TextSize', ptb.window, textSize);
+DrawFormattedText(ptb.window, textHorizontal, textHX, textHY, textColor);
+
 % whole vertical grating
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2, [], destinationRectVertical);
@@ -80,15 +104,25 @@ Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectRightEye);
 tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectRightEye);
 
+textMonocular = ['1. Only one grating with either horizontal or vertical\n' ...
+    'orientation. If you perceive the above stimuli,\n' ...
+    '   Keep on pressing the ' monocular ' key'];
+
+% Calculate position for left eye text
+textXLeftEye = destinationRectLeftEye(1) + 50;  % Adjust the offset to the left
+textYLeftEye = destinationRectLeftEye(4) + 30; 
+
+DrawFormattedText(ptb.window,textMonocular, textXLeftEye, textYLeftEye, textColor);
+
 % swap alpha masks
 ScaledHorizontalGrating(:,:,4)  = alphaMaskPieceMeal1;
 ScaledVerticalGrating(:,:,4)    = alphaMaskPieceMeal2;
 
-tex11Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
-
-tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
+% tex11Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+% Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
+% 
+% tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+% Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
 % 
 horizontalGrating = sin(xHorizontal*design.scalingFactor); 
 ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
@@ -101,6 +135,21 @@ Screen('SelectStereoDrawBuffer', ptb.window, 1);
 
 tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
+
+textHorizontal = ['2. Two gratings with horizontal and vertical orientations\n' ...
+    ' next to each other:\n' ...
+    'If you perceive any of the above stimuli,\n ' ...
+    '       Keep on pressing the ' binocular ' key'];
+
+textSize = 15;
+textColor = [0 0 0];
+
+textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90; % Adjust the offset as needed
+textHY = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110; % Adjust the offset as needed
+
+% Draw the text
+Screen('TextSize', ptb.window, textSize);
+DrawFormattedText(ptb.window, textHorizontal, textHX, textHY, textColor);
 
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2, [], destinationRectVertical);
@@ -122,63 +171,70 @@ Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectRightEye);
 
 tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectRightEye);
+
+textMonocular = ['1. Only one grating with either horizontal or vertical\n' ...
+    'orientation. If you perceive the above stimuli,\n' ...
+    '   Keep on pressing the ' monocular ' key'];
+
+% Calculate position for left eye text
+textXLeftEye = destinationRectLeftEye(1) + 50;
+textYLeftEye = destinationRectLeftEye(4) + 30; 
+
+DrawFormattedText(ptb.window,textMonocular, textXLeftEye, textYLeftEye, textColor);
  
 ScaledHorizontalGrating(:,:,4)  = alphaMaskPieceMeal1;
 ScaledVerticalGrating(:,:,4)    = alphaMaskPieceMeal2;
 
-tex11Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
-
-tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
+% tex11Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+% Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
 % 
+% tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+% Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
+
 Screen('DrawingFinished', ptb.window);
 Screen('Flip', ptb.window);
 WaitSecs(0.5);
-% 
-% screenshot = Screen('GetImage', ptb.window);
-% imwrite(screenshot, 'screenshot.png');
 KbWait();
 
-if mod(get.subjectNumber,2) == 0
-    monocular = 'left';
-    binocular = 'right';
-else
-    monocular = 'right';
-    binocular = 'left';
-end
 
 instructionsArray_1 = {
     ['Thank you for choosing to participate in this study involving interocular grouping\n' ...
     'By pressing any key button, you will be re-directed to a series of instructions \n' ...
     'informing you about what you are required to do in this experiment'];
-    
+
+    ['This experiment will consist of eight runs with four trials each\n' ...
+    'You may take a short break in between the different runs\n' ...
+    'Please remember NOT to move your head during the experiment\n' ...
+    'Press any key to continue...'];
+
     ['You will first have a fusion test, in which you will be presented with \n' ...
     'two rectangular frames which you should\n' ...
     'fuse together using the left or right' ...
-    'arrows. Once this is done, click space to continue'];
-    
-    ['Here are the possible perceptions:\n'];
+    'arrows. Once this is done, click the middle key to continue\n' ...
+    'Press any key to continue...'];
 
-    ['1. Only one grating with either horizontal or vertical orientation\n'];
-
-    ['2. Two gratings with horizontal and vertical orientations next to each other:\n'];
+    % then here fusion test, then following instructions
     
-    ['3. Mixed percept: Both gratings in a patchwork-like pattern\n'];
-    
-    ['Remember to keep on pressing monocular if you perceive monocular\n' ...
-    'percepts, and binocular if you perceive interocular grouping\n' ...
-    'And do not press anything in case you perceive a mixture\n'...
-    'Press any key to continue']
-};
+    ['In the following instructions, you will see all the possible\n' ...
+    ' percepts you may encounter in the experiment.\n' ...
+    ' Press any key to continue'];
 
-instructionsArray_2 = [
-    'Now you will be redirected to the actual experiment. \n' ...
-    'If the images presented to both eyes merge together\n' ...
-    'to form a coherent pattern,\n'...
-    'press the ' binocular ' key. If the images remain monocularly perceived,\n' ...
-    'press the ' monocular ' key.\n'
-];
+    % the window screen of IOG and monocular percepts shown with text
+    % inclusive
+    
+    % Then, window screen of mixed piecemeal percepts with included texts
+
+    ['REMINDER: KEEP PRESSING ' monocular ' IF YOU SEE TWO DIFFERENT\n' ...
+    'GRATINGS, AND ' binocular ' IF YOU SEE ONE, AND NOTHING IF YOU\n' ...
+    'SEE MIXED PATTERNS AS SHOWN BEFORE.\n' ...
+    '' ...
+    'Press any key to continue.'];
+    };
+
+instructionsArray_2 = {
+    ['Now you will be re-directed to the actual experiment.\n' ...
+    ' Press any key to continue'];
+    };
 
 for inst1 = 1:length(instructionsArray_1)
     TextDisplay = instructionsArray_1{inst1};
@@ -196,7 +252,6 @@ for inst1 = 1:length(instructionsArray_1)
     
     Screen('Flip', ptb.window);
     
-    % Wait for any key press
     KbWait();
     WaitSecs();
 end
