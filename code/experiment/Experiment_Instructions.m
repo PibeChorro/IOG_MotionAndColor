@@ -1,4 +1,5 @@
 function Experiment_Instructions(ptb,get,design)
+
 [xVertical, xHorizontal] = meshgrid(1:314);
 
 alphaMaskPieceMeal1 = zeros(size(xHorizontal));
@@ -7,6 +8,15 @@ halfColumns = round(size(alphaMaskPieceMeal1, 2) / 2);
 % Right half: horizontal in the upper part, vertical in the lower part
 alphaMaskPieceMeal1(1:round(size(alphaMaskPieceMeal1, 1)/2), 1:halfColumns) = 1; 
 alphaMaskPieceMeal1(round(size(alphaMaskPieceMeal1, 1)/2)+1:end, halfColumns+1:end) = 1;
+
+halfScreenX = ptb.screenXpixels/2;
+halfScreenY = ptb.screenYpixels/2;
+
+destinationRectHorizontal = [halfScreenX/4 halfScreenX/2 halfScreenY/2 halfScreenX];
+destinationRectVertical = [halfScreenX+50 halfScreenX/2 halfScreenY+50 halfScreenX];
+destinationRectLeftEye = [halfScreenX/4 halfScreenY halfScreenY/2 halfScreenX*2];
+destinationRectRightEye = [halfScreenX+50 halfScreenY halfScreenX*2 halfScreenX*2];
+destinationRectPieceMeal = [halfScreenX-50 halfScreenX halfScreenX+50 halfScreenY];
 
 alphaMaskPieceMeal2 = ~alphaMaskPieceMeal1;
 
@@ -24,13 +34,6 @@ ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
 verticalGrating1 = sin(xVertical*design.scalingFactor);
 ScaledVerticalGrating = ((verticalGrating1+1)/2) * design.contrast;
 
-turnoffIndicesVertical = 4;
-turnoffIndicesHorizontal = 4;
-
-ScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
-ScaledVerticalGrating(:,:,turnoffIndicesVertical) = 0;
-
-
 %% CREATION OF STIMULI AND CLOSING SCREENS
 % Creation of experimental stimuli with different features (textures, colors…)
 
@@ -38,35 +41,45 @@ ScaledVerticalGrating(:,:,turnoffIndicesVertical) = 0;
 Screen('SelectStereoDrawBuffer', ptb.window, 0);
 
 tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex1, [], [10 10 40 40]);
+Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
 
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex2, [], [50 10 50 40]);
+Screen('DrawTexture', ptb.window, tex2, [], destinationRectVertical);
 
 ScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
 ScaledVerticalGrating(:,:,4)    = design.alphaMask2;
 
-tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex1, [], [10 50 40 90]);
+tex1Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectLeftEye);
 
-tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex2, [], [50 50 50 90]);
+tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectLeftEye);
 
+ScaledHorizontalGrating(:,:,4)  = design.alphaMask2;
+ScaledVerticalGrating(:,:,4)    = design.alphaMask1;
+
+tex1Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectRightEye);
+
+tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectRightEye);
+ 
 ScaledHorizontalGrating(:,:,4)  = alphaMaskPieceMeal1;
 ScaledVerticalGrating(:,:,4)    = alphaMaskPieceMeal2;
 
-tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex1, [], [100 60 140 100]);
+tex11Other = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
 
-tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
-Screen('DrawTexture', ptb.window, tex2, [], [100 60 140 100]);
-
+tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
+Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
+% 
 Screen('DrawingFinished', ptb.window);
 Screen('Flip', ptb.window);
-
-screenshot = Screen('GetImage', ptb.window);
-imwrite(screenshot, 'screenshot.png');
-WaitSecs(5);
+WaitSecs(0.5);
+% 
+% screenshot = Screen('GetImage', ptb.window);
+% imwrite(screenshot, 'screenshot.png');
+KbWait();
 
 if mod(get.subjectNumber,2) == 0
     monocular = 'left';
