@@ -17,14 +17,6 @@ instructionsArray_1 = {
     'You may take a short break in between the different runs\n' ...
     'Please remember NOT to move your head during the experiment\n' ...
     'Press any key to continue...'];
-
-    ['You will first have a fusion test, in which you will be presented with \n' ...
-    'two rectangular frames which you should\n' ...
-    'fuse together using the left or right' ...
-    'arrows. Once this is done, click the middle key to continue\n' ...
-    'Press any key to continue...'];
-
-    % then here fusion test, then following instructions
     
     ['In the following instructions, you will see all the possible\n' ...
     ' percepts you may encounter in the experiment.\n' ...
@@ -37,9 +29,9 @@ instructionsArray_1 = {
 
     ['REMINDER: KEEP PRESSING ' monocular ' IF YOU SEE TWO DIFFERENT\n' ...
     'GRATINGS, AND ' binocular ' IF YOU SEE ONE, AND NOTHING IF YOU\n' ...
-    'SEE MIXED PATTERNS AS SHOWN BEFORE.\n' ...
-    '' ...
-    'Press any key to continue.'];
+    'SEE ANY MIXED PATTERNS AS SHOWN BEFORE.\n' ...
+    'Also, please keep your eyes fixated on the cross in the middle of the stimulus.' ...
+    'Press any key to continue...'];
     };
 
 for inst1 = 1:3
@@ -62,25 +54,7 @@ for inst1 = 1:3
     WaitSecs(0.5);
 end
 
-WaitSecs(1);
-    
-TextDisplay = instructionsArray_1{4};
-
-Screen('SelectStereoDrawBuffer', ptb.window, 0);
-
-DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
-
-Screen('SelectStereoDrawBuffer', ptb.window, 1);
-
-DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
-
-% Tell PTB drawing is finished for this frame:
-Screen('DrawingFinished', ptb.window);
-
-Screen('Flip', ptb.window);
-
-KbWait();
-WaitSecs();
+WaitSecs(0.5);
 
 [xVertical, xHorizontal] = meshgrid(1:314);
 
@@ -142,7 +116,7 @@ textHorizontal = ['1. Only one grating with either horizontal or vertical\n' ...
 textColor = [0 0 0];
 
 textXIOG = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90; % Adjust the offset as needed
-textYIOG = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110; % Adjust the offset as needed
+textYIOG = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 130; % Adjust the offset as needed
 
 % Draw the text
 DrawFormattedText(ptb.window, textHorizontal, textXIOG, textYIOG, textColor);
@@ -180,8 +154,8 @@ textMonocular = ['2. Two gratings with horizontal and vertical orientations\n' .
     'Keep on pressing the ' binocular ' key'];
 
 % Calculate position for left eye text
-textXMonocular = (destinationRectLeftEye(1) + destinationRectLeftEye(3)) / 2;  % Adjust the offset to the left
-textYMonocular = destinationRectLeftEye(4) + 30; 
+textXMonocular = (destinationRectLeftEye(1) + destinationRectLeftEye(3)) / 2 - 90;  % Adjust the offset to the left
+textYMonocular = destinationRectLeftEye(2) + destinationRectLeftEye(4) / 2 + 110; 
 
 DrawFormattedText(ptb.window,textMonocular, textXMonocular, textYMonocular, textColor);
  
@@ -204,10 +178,10 @@ textMonocular = ['2. Two gratings with horizontal and vertical orientations\n' .
 
 textColor = [0 0 0];
 
-textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 50;
-textHY = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110;
+textXMonocular = (destinationRectLeftEye(1) + destinationRectLeftEye(3)) / 2 - 90;
+textYMonocular = (destinationRectLeftEye(2) + destinationRectLeftEye(4)) / 2 + 110;
 
-DrawFormattedText(ptb.window, textMonocular, textHX, textHY, textColor);
+DrawFormattedText(ptb.window, textMonocular, textXMonocular, textYMonocular, textColor);
 
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2, [], destinationRectVertical);
@@ -236,7 +210,7 @@ textHorizontal = ['1. Only one grating with either horizontal or vertical\n' ...
 
 % Calculate position for left eye text
 textXIOG = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90;
-textYIOG = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110;
+textYIOG = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 130;
 
 DrawFormattedText(ptb.window,textHorizontal, textXIOG, textYIOG, textColor);
  
@@ -257,8 +231,9 @@ Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
 tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);
 Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
 
-textPieceMeal = ['If you perceive this mixed\n' ...
-    'structure, do not press\n' ...
+textPieceMeal = ['If you perceive a stimulus that is mixed (take the ' ...
+    'stimulus above as a possible example,\n' ...
+    'do not press\n' ...
     '          anything.'];
 
 centerXPieceMeal = (destinationRectPieceMeal(1) + destinationRectPieceMeal(3)) / 2;
@@ -282,13 +257,14 @@ Screen('DrawTexture', ptb.window, tex11Other, [], destinationRectPieceMeal);
 tex22Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);
 Screen('DrawTexture', ptb.window, tex22Other, [], destinationRectPieceMeal);
 
-textPieceMeal = ['If you perceive this mixed\n' ...
-    'structure, do not press\n' ...
+textPieceMeal = ['If you perceive a stimulus that is mixed (take the ' ...
+    'stimulus above as a possible example,\n' ...
+    'do not press\n' ...
     '          anything.'];
 
 % Calculate position for left eye text
 textXPieceMeal = centerXPieceMeal;
-textYPieceMeal = destinationRectPieceMeal(4) + 50; 
+textYPieceMeal = destinationRectPieceMeal(4) + 50;
 
 DrawFormattedText(ptb.window,textPieceMeal, textXPieceMeal, textYPieceMeal, textColor);
 
@@ -297,7 +273,7 @@ Screen('Flip', ptb.window);
 WaitSecs(0.5);
 KbWait();
 
-TextDisplay = instructionsArray_1{5};
+TextDisplay = instructionsArray_1{4};
 
 Screen('SelectStereoDrawBuffer', ptb.window, 0);
 
@@ -318,6 +294,7 @@ WaitSecs();
 
 instructionsArray_2 = {
     ['Now you will be re-directed to the actual experiment.\n' ...
+    'Get ready...' ...
     ' Press any key to continue'];
     };
 
