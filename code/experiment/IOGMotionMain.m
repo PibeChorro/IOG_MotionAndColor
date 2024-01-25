@@ -206,7 +206,7 @@ WaitSecs(0.5);
 %% DATA READING:
 
 try
-    % Generate the file path based on subject and run number
+    % Generate the file path based on subject number and run number
     dataFilePath = fullfile('../../rawdata/', sprintf('sub-%02d/sub-%02d_run-%02d_conditions.csv', get.subjectNumber, get.subjectNumber, get.runNumber));
     
     % Check if the file exists before attempting to read it
@@ -216,13 +216,12 @@ try
         get.data = data;
         disp('Data loaded successfully...');
     else
-        error('Data file not found. Please make sure you entered the correct data filename');
+        disp('Error: Data file not found. Please make sure the file path is correct.');
     end
 
-catch readingDataError
+catch readingError
     sca;
-    close all;
-    rethrow(readingDataError);
+    rethrow(readingError);
 end
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
@@ -255,18 +254,18 @@ for trial = 1:4
         Motion1 = 1;
 
         if any(strcmp(data.Motion2(trial), 'Rightward'))
-            Motion2 = 1;
-        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
             Motion2 = -1;
+        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
+            Motion2 = 1;
         end
 
     elseif any(strcmp(data.Motion1(trial), 'Downward'))
         Motion1 = -1;
 
         if any(strcmp(data.Motion2(trial), 'Rightward'))
-            Motion2 = 1;
-        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
             Motion2 = -1;
+        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
+            Motion2 = 1;
         end
         
     elseif any(strcmp(data.Motion1(trial), 'No Motion'))
