@@ -62,14 +62,6 @@ for inst1 = 1:3
     WaitSecs(0.5);
 end
 
-try
-    alignFusion(ptb,design)
-catch alignError
-    sca;
-    close all;
-    rethrow(alignError);
-end
-
 WaitSecs(1);
     
 TextDisplay = instructionsArray_1{4};
@@ -109,14 +101,14 @@ destinationRectVertical     = [...
     fullScreenX*9/16 fullScreenY*3/16 ...
     fullScreenX*11/16 fullScreenY*5/16];
 destinationRectLeftEye      = [...
-    fullScreenX*1/8 fullScreenY*5/8 ...
-    fullScreenX*3/8 fullScreenY*7/8];
+    fullScreenX*5/16 fullScreenY*7/16 ...
+    fullScreenX*7/16 fullScreenY*9/16];
 destinationRectRightEye     = [...
-    fullScreenX*5/8 fullScreenY*5/8 ...
-    fullScreenX*7/8 fullScreenY*7/8];
+    fullScreenX*9/16 fullScreenY*7/16 ...
+    fullScreenX*11/16 fullScreenY*9/16];
 destinationRectPieceMeal = [...
-    fullScreenX*5/16 fullScreenY*3/16 ...
-    fullScreenX*9/16 fullScreenY*7/16];
+    fullScreenX*7/16 fullScreenY*7/16 ...
+    fullScreenX*9/16 fullScreenY*9/16];
 
 alphaMaskPieceMeal2 = ~alphaMaskPieceMeal1;
 
@@ -143,10 +135,9 @@ tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create tex
 Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
 
 
-textHorizontal = ['2. Two gratings with horizontal and vertical orientations\n' ...
-    ' next to each other:\n' ...
-    'If you perceive any of the above stimuli,\n ' ...
-    '       Keep on pressing the ' binocular ' key'];
+textHorizontal = ['1. Only one grating with either horizontal or vertical\n' ...
+    'orientation. If you perceive the above stimuli,\n' ...
+    '   Keep on pressing the ' monocular ' key'];
 
 textColor = [0 0 0];
 
@@ -184,9 +175,9 @@ Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectRightEye);
 tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectRightEye);
 
-textMonocular = ['1. Only one grating with either horizontal or vertical\n' ...
-    'orientation. If you perceive the above stimuli,\n' ...
-    '   Keep on pressing the ' monocular ' key'];
+textMonocular = ['2. Two gratings with horizontal and vertical orientations\n' ...
+    ' next to each other. If you perceive any of the above stimuli,\n ' ...
+    'Keep on pressing the ' binocular ' key'];
 
 % Calculate position for left eye text
 textXLeftEye = destinationRectLeftEye(1) + 50;  % Adjust the offset to the left
@@ -213,7 +204,7 @@ textHorizontal = ['2. Two gratings with horizontal and vertical orientations\n' 
 
 textColor = [0 0 0];
 
-textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90;
+textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2;
 textHY = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110;
 
 DrawFormattedText(ptb.window, textHorizontal, textHX, textHY, textColor);
@@ -274,7 +265,7 @@ centerXPieceMeal = (destinationRectPieceMeal(1) + destinationRectPieceMeal(3)) /
 halfCenterXPieceMeal = centerXPieceMeal/2;
 
 % Calculate position for left eye text
-textXPieceMeal = halfCenterXPieceMeal + 10;  % Adjust the offset to the left
+textXPieceMeal = halfCenterXPieceMeal;  % Adjust the offset to the left
 textYPieceMeal = destinationRectPieceMeal(4) + 50; 
 
 DrawFormattedText(ptb.window,textPieceMeal, textXPieceMeal, textYPieceMeal, textColor);
@@ -297,7 +288,7 @@ textPieceMeal = ['If you perceive this mixed\n' ...
     '          anything.'];
 
 % Calculate position for left eye text
-textXPieceMeal = halfCenterXPieceMeal + 10;
+textXPieceMeal = halfCenterXPieceMeal;
 textYPieceMeal = destinationRectPieceMeal(4) + 50; 
 
 DrawFormattedText(ptb.window,textPieceMeal, textXPieceMeal, textYPieceMeal, textColor);

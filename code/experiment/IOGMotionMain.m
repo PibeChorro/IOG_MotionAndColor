@@ -358,7 +358,7 @@ end
 
 %% saving data
 get.end = 'Success';
-get.participantsInfo = participantInfo;
+% get.participantsInfo = participantInfo;
 savedata(get,ptb,design)
 Screen('CloseAll');
 end
