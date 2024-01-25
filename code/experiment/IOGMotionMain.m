@@ -95,54 +95,80 @@ ptb.Keys.interocular = ptb.Keys.right;
 
 %% PARTICIPANT INFORMATION
 get = struct;
-% Initialize participantInfo structure
-participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
-
-% Collect participant information
-participantInfo.age = input('Enter your age: ');
-
-% Get gender from user input (1 for male, 2 for female)
-
-while true
-    gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
-    
-    % Check if the input is a valid numeric value
-    if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2, 3])
-        disp('Invalid input. Please enter 1 for male, 2 for female or 3 for other');
-    else
-        % Convert gender to a string representation
-        if str2double(gender) == 1
-            participantInfo.gender = 'male';
-        elseif str2double(gender) == 2
-            participantInfo.gender = 'female';
-        else
-            participantInfo.gender = 'other';
-        end
-        break;  % Exit the loop if a valid number is entered
-    end
-end
 
 while true
     get.subjectNumber = input('Enter subject number: ', 's');  % Read input as a string
-    
+    [subNr, valid] = str2num(get.subjectNumber);
     % Check if the input is a valid numeric value
-    if isempty(str2double(get.subjectNumber)) % checks if the entered string cannot be converted to a numeric value.
+    if valid
+        get.subjectNumber = subNr; 
+        break;
+    else % Convert the valid input to a number
         disp('Invalid input. Please enter a valid numeric value for the subject number.');
-    else
-        get.subjectNumber = str2double(get.subjectNumber);  % Convert the valid input to a number
-        break;  % Exit the loop if a valid number is entered
     end
 end
 
-while true
-    get.runNumber = input('Enter run number: ', 's');  % Read input as a string
+get.folderName = fullfile('../../rawdata/', sprintf('sub-%02d', get.subjectNumber));
+% Check if the folder exists, create it if it doesn't
+if ~exist(get.folderName, 'dir')
+    mkdir(get.folderName);
+end
+if ~exist(fullfile(get.folderName, 'participantInfo.mat'),'file')
+    % Initialize participantInfo structure
+    participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
     
+    while true
+        % Collect participant information
+        participantInfo.age = input('Enter your age: ','s');
+        [age, valid] = str2num(participantInfo.age);
+        % Check if the input is a valid numeric value
+        if valid
+            % check subject age and if accidentally a complex
+            % number was given
+            if (age >= 18) && (isreal(age))
+                participantInfo.age = age; 
+                break;
+            end
+        else % Convert the valid input to a number
+            disp('Invalid input. Please enter a valid numeric value for the subject number.');
+        end
+    end
+    
+    % Get gender from user input (1 for male, 2 for female)
+    
+    while true
+        gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
+        
+        % Check if the input is a valid numeric value
+        if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2, 3])
+            disp('Invalid input. Please enter 1 for male, 2 for female or 3 for other');
+        else
+            % Convert gender to a string representation
+            if str2double(gender) == 1
+                participantInfo.gender = 'male';
+                break;  % Exit the loop if a valid number is entered
+            elseif str2double(gender) == 2
+                participantInfo.gender = 'female';
+                break;  % Exit the loop if a valid number is entered
+            else
+                participantInfo.gender = 'other';
+                break;  % Exit the loop if a valid number is entered
+            end
+        end
+    end
+    % save participants info
+    save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
+end
+
+while true
+    get.runNumber = input('Enter run number [1-8]: ', 's');  % Read input as a string
     % Check if the input is a valid numeric value
-    if isempty(str2double(get.runNumber)) % checks if the entered string cannot be converted to a numeric value.
-        disp('Invalid input. Please enter a valid numeric value for the subject number.');
-    else
-        get.runNumber = str2double(get.runNumber);  % Convert the valid input to a number
+    [runNr, valid] = str2num(get.runNumber);
+    if valid && runNr <=8 && runNr > 0
+        get.runNumber = runNr;  % Convert the valid input to a number
         break;  % Exit the loop if a valid number is entered
+    else
+        disp('Invalid input. Please enter a valid numeric value for the subject number.');
     end
 end
 
@@ -154,18 +180,8 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.left = ptb.Keys.interocular;
 end
 
-% Create CSV files for each run inside the subject folder
-get.folderName = fullfile('../../rawdata/', sprintf('sub-%02d', get.subjectNumber));
-
-% Check if the folder exists, create it if it doesn't
-if ~exist(get.folderName, 'dir')
-    mkdir(get.folderName);
-end
-
 %% FUSION TEST:
-
 % Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
-
 try
     alignFusion(ptb, design);
 catch alignFusionError
