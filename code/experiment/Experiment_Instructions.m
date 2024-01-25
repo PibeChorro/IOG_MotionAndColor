@@ -331,7 +331,7 @@ instructionsArray_2 = {
     ' Press any key to continue'];
     };
 
-TextDisplay = instructionsArray_2;
+TextDisplay = instructionsArray_2{1};
 
 Screen('SelectStereoDrawBuffer', ptb.window, 0);
 
