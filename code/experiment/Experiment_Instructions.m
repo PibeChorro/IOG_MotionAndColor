@@ -141,11 +141,11 @@ textHorizontal = ['1. Only one grating with either horizontal or vertical\n' ...
 
 textColor = [0 0 0];
 
-textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90; % Adjust the offset as needed
-textHY = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110; % Adjust the offset as needed
+textXIOG = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90; % Adjust the offset as needed
+textYIOG = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110; % Adjust the offset as needed
 
 % Draw the text
-DrawFormattedText(ptb.window, textHorizontal, textHX, textHY, textColor);
+DrawFormattedText(ptb.window, textHorizontal, textXIOG, textYIOG, textColor);
 
 % whole vertical grating
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
@@ -180,10 +180,10 @@ textMonocular = ['2. Two gratings with horizontal and vertical orientations\n' .
     'Keep on pressing the ' binocular ' key'];
 
 % Calculate position for left eye text
-textXLeftEye = destinationRectLeftEye(1) + 50;  % Adjust the offset to the left
-textYLeftEye = destinationRectLeftEye(4) + 30; 
+textXMonocular = (destinationRectLeftEye(1) + destinationRectLeftEye(3)) / 2;  % Adjust the offset to the left
+textYMonocular = destinationRectLeftEye(4) + 30; 
 
-DrawFormattedText(ptb.window,textMonocular, textXLeftEye, textYLeftEye, textColor);
+DrawFormattedText(ptb.window,textMonocular, textXMonocular, textYMonocular, textColor);
  
 horizontalGrating = sin(xHorizontal*design.scalingFactor); 
 ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
@@ -197,17 +197,17 @@ Screen('SelectStereoDrawBuffer', ptb.window, 1);
 tex1 = Screen('MakeTexture', ptb.window, ScaledHorizontalGrating);  % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex1, [], destinationRectHorizontal);
 
-textHorizontal = ['2. Two gratings with horizontal and vertical orientations\n' ...
+textMonocular = ['2. Two gratings with horizontal and vertical orientations\n' ...
     ' next to each other:\n' ...
     'If you perceive any of the above stimuli,\n ' ...
     '       Keep on pressing the ' binocular ' key'];
 
 textColor = [0 0 0];
 
-textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2;
+textHX = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 50;
 textHY = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110;
 
-DrawFormattedText(ptb.window, textHorizontal, textHX, textHY, textColor);
+DrawFormattedText(ptb.window, textMonocular, textHX, textHY, textColor);
 
 tex2 = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2, [], destinationRectVertical);
@@ -230,15 +230,15 @@ Screen('DrawTexture', ptb.window, tex1Other, [], destinationRectRightEye);
 tex2Other = Screen('MakeTexture', ptb.window, ScaledVerticalGrating);    % create texture for stimulus
 Screen('DrawTexture', ptb.window, tex2Other, [], destinationRectRightEye);
 
-textMonocular = ['1. Only one grating with either horizontal or vertical\n' ...
+textHorizontal = ['1. Only one grating with either horizontal or vertical\n' ...
     'orientation. If you perceive the above stimuli,\n' ...
     '   Keep on pressing the ' monocular ' key'];
 
 % Calculate position for left eye text
-textXLeftEye = destinationRectLeftEye(1) + 50;
-textYLeftEye = destinationRectLeftEye(4) + 30; 
+textXIOG = (destinationRectHorizontal(1) + destinationRectHorizontal(3)) / 2 - 90;
+textYIOG = (destinationRectHorizontal(2) + destinationRectHorizontal(4)) / 2 + 110;
 
-DrawFormattedText(ptb.window,textMonocular, textXLeftEye, textYLeftEye, textColor);
+DrawFormattedText(ptb.window,textHorizontal, textXIOG, textYIOG, textColor);
  
 Screen('DrawingFinished', ptb.window);
 Screen('Flip', ptb.window);
@@ -262,10 +262,9 @@ textPieceMeal = ['If you perceive this mixed\n' ...
     '          anything.'];
 
 centerXPieceMeal = (destinationRectPieceMeal(1) + destinationRectPieceMeal(3)) / 2;
-halfCenterXPieceMeal = centerXPieceMeal/2;
 
 % Calculate position for left eye text
-textXPieceMeal = halfCenterXPieceMeal;  % Adjust the offset to the left
+textXPieceMeal = centerXPieceMeal;  % Adjust the offset to the left
 textYPieceMeal = destinationRectPieceMeal(4) + 50; 
 
 DrawFormattedText(ptb.window,textPieceMeal, textXPieceMeal, textYPieceMeal, textColor);
@@ -288,7 +287,7 @@ textPieceMeal = ['If you perceive this mixed\n' ...
     '          anything.'];
 
 % Calculate position for left eye text
-textXPieceMeal = halfCenterXPieceMeal;
+textXPieceMeal = centerXPieceMeal;
 textYPieceMeal = destinationRectPieceMeal(4) + 50; 
 
 DrawFormattedText(ptb.window,textPieceMeal, textXPieceMeal, textYPieceMeal, textColor);
