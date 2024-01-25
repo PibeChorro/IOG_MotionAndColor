@@ -67,19 +67,18 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
-design.xHorizontal = meshgrid(1:314);
-design.xVertical = meshgrid(1:314);
+[design.xVertical, design.xHorizontal] = meshgrid(1:314);
 
 design.alphaMask1 = zeros(size(design.xHorizontal));
 design.alphaMask2 = design.alphaMask1;
 
 design.xHorizontal(:,:,2) = design.xHorizontal(:,:,1);
 design.xHorizontal(:,:,3) = design.xHorizontal(:,:,1);
-design.xHorizontal(:,:,4) = design.xHorizontal(:,:,1);
+design.xHorizontal(:,:,4) = design.alphaMask1;
 
 design.xVertical(:,:,2) = design.xVertical(:,:,1);
 design.xVertical(:,:,3) = design.xVertical(:,:,1);
-design.xVertical(:,:,4) = design.xVertical(:,:,1);
+design.xVertical(:,:,4) = design.alphaMask2;
 
 %% ALPHA MASKS -- MONDREAN MASKS
 
@@ -190,6 +189,7 @@ catch alignFusionError
 end
 
 WaitSecs(0.5);
+
 %% INSTRUCTIONS:
 
 % Experimental instructions with texts (using experimental function from another mat script).
@@ -201,18 +201,29 @@ catch instructionsError
     rethrow(instructionsError);
 end
 
+WaitSecs(0.5);
+
 %% DATA READING:
 
-try   
-    data = readtable('../../rawdata/sub-01/sub-01_run-01_conditions.csv');
+try
+    % Generate the file path based on subject and run number
+    dataFilePath = fullfile('../../rawdata/', sprintf('sub-%02d/sub-%02d_run-%02d_conditions.csv', get.subjectNumber, get.subjectNumber, get.runNumber));
+    
+    % Check if the file exists before attempting to read it
+    if exist(dataFilePath, 'file')
+        data = readtable(dataFilePath);
+        data = table2struct(data, 'toScalar', true);
+        get.data = data;
+        disp('Data loaded successfully...');
+    else
+        error('Data file not found. Please make sure you entered the correct data filename');
+    end
 
-catch readingError
+catch readingDataError
     sca;
-    rethrow(readingError);
+    close all;
+    rethrow(readingDataError);
 end
-
-    data = table2struct(data, 'toScalar', true);
-    get.data = data;
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
 
@@ -295,14 +306,14 @@ for trial = 1:4
     % updating the x arrays 
     while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
 
-        xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
-        xVertical = design.xVertical + Motion2 * design.stepSize;
+        design.xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
+        design.xVertical = design.xVertical + Motion2 * design.stepSize;
     
         % TODO (VP): set factor for sinus wave as a variable 
-        horizontalGrating = sin(xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
+        horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
         leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
     
-        verticalGrating = sin(xVertical*design.scalingFactor);
+        verticalGrating = sin(design.xVertical*design.scalingFactor);
         leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
 
         leftScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
