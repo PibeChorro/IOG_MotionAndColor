@@ -1,23 +1,19 @@
 
 %% GENERAL FUNCTION AND MONITOR SETUP:
-
 % Function creation for the experimental code.
 function IOGMotionMain(setUp)
 
 % Setup input for the monitor being used.
-
 if nargin < 1
     setUp = 'CIN-experimentroom';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
-
 % Opening psychtoolbox function ptb.
  ptb = PTBSettingsIOGMotion(setUp);
 
 
 %% DESIGN-RELATED:
-
 % Different design-related information.
 
 design = getInstructions();
@@ -67,6 +63,11 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
+
+%% REPETITION MATRIX FOR MOTION SIMULATION
+% TODO (VP): change limit of array from arbitrary 314 to a well thought
+% through value
+
 [design.xVertical, design.xHorizontal] = meshgrid(1:314);
 
 design.alphaMask1 = zeros(size(design.xHorizontal));
@@ -81,8 +82,6 @@ design.xVertical(:,:,3) = design.xVertical(:,:,1);
 design.xVertical(:,:,4) = design.alphaMask2;
 
 %% ALPHA MASKS -- MONDREAN MASKS
-
-
 % TODO (VP): make alpha mask values dynamic
 design.alphaMask1(:,1:157) = 1;
 design.alphaMask2(:,158:end) = 1;
@@ -191,7 +190,6 @@ end
 WaitSecs(0.5);
 
 %% INSTRUCTIONS:
-
 % Experimental instructions with texts (using experimental function from another mat script).
 try
     Experiment_Instructions(ptb,get,design);
@@ -204,7 +202,6 @@ end
 WaitSecs(0.5);
 
 %% DATA READING:
-
 try
     % Generate the file path based on subject number and run number
     dataFilePath = fullfile('../../rawdata/', sprintf('sub-%02d/sub-%02d_run-%02d_conditions.csv', get.subjectNumber, get.subjectNumber, get.runNumber));
@@ -221,15 +218,11 @@ try
 
 catch readingError
     sca;
+    close all;
     rethrow(readingError);
 end
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
-
-%% Stop and remove events in queue
-%     KbQueueStop(ptb.Keyboard2);
-%     KbEventFlush(ptb.Keyboard2);
-
     % Stop and remove events in queue for Keyboard2
     KbQueueStop(ptb.Keyboard2);
     KbEventFlush(ptb.Keyboard2);
@@ -238,14 +231,8 @@ end
     % Start the queue for Keyboard2
     KbQueueStart(ptb.Keyboard2);
 
-%% REPETITION MATRIX FOR MOTION SIMULATION
-
-% TODO (VP): change limit of array from arbitrary 314 to a well thought
-% through value
-
 
 %%  INTRODUCTION OF THE CASES/CONDITIONS:
-
 % Introducing the different conditions of the experiment along with assigned variables
 % Create 4D matrices for horizontal and vertical gratings
 try
@@ -365,13 +352,14 @@ try
         end
     get.data.trialOffset(trial) = GetSecs;
     end
+    
 catch stimuliGenerationError
     sca;
     close all;
     rethrow(stimuliGenerationError);
 end
 
-%% saving data
+%% Saving Data
 get.end = 'Success';
 % get.participantsInfo = participantInfo;
 savedata(get,ptb,design)
