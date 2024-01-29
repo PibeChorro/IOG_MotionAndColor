@@ -273,20 +273,39 @@ try
             turnoffIndicesVertical = 4;
             turnoffIndicesHorizontal = 4;
         else
-            error('Impossible color')
+            error('Impossible color');
         end
+  
+        vbl = Screen('Flip', ptb.window);
+
     
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-                ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+                ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
     
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-                ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+                ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
         Screen('DrawingFinished', ptb.window);
-        vbl = Screen('Flip', ptb.window);
-        WaitSecs(design.ITI);
-    
+        Screen('Flip', ptb.window);
+
+        if trial == 1
+            WaitSecs(5);
+        else
+            WaitSecs(design.ITI);
+        end
+
+        Screen('SelectStereoDrawBuffer', ptb.window, 0);
+        Screen('DrawLines', ptb.window,design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+
+        Screen('SelectStereoDrawBuffer', ptb.window, 1);
+        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+        Screen('DrawingFinished', ptb.window);
+        Screen('Flip', ptb.window);
+        WaitSecs(2);
+
         % get timing of trial onset
         get.data.trialOnset(trial) = GetSecs;
         % updating the x arrays 
@@ -296,7 +315,7 @@ try
             design.xVertical = design.xVertical + Motion2 * design.stepSize;
         
             % TODO (VP): set factor for sinus wave as a variable 
-            horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
+            horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.1 (CPM oder CPD?)
             leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
         
             verticalGrating = sin(design.xVertical*design.scalingFactor);
