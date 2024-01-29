@@ -29,10 +29,10 @@ design = getInstructions();
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
 
-design.stimulusPresentationTime = 6 - ptb.ifi/2;
-design.ITI                      = 3 - ptb.ifi/2;
-design.contrast                 = 0.33;                                      % decreasing the contrast between rivaling stimuli prolonges the dominance time
-design.stepSize                 = 0.25;                                     % step size for motion trials to reduce/increase velocity
+design.stimulusPresentationTime = 20 - ptb.ifi/2;
+design.ITI                      = 5 - ptb.ifi/2;
+design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.stepSize                 = 0.875;                                % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
 design.scalingFactor            = 0.1;
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
