@@ -19,3 +19,5 @@ code/experiment/openExperimentWindow.m
 data/
 
 rawdata/
+
+.DS_Store

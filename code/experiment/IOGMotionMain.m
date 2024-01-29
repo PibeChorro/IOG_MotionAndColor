@@ -1,23 +1,19 @@
 
 %% GENERAL FUNCTION AND MONITOR SETUP:
-
 % Function creation for the experimental code.
 function IOGMotionMain(setUp)
 
 % Setup input for the monitor being used.
-
 if nargin < 1
     setUp = 'CIN-experimentroom';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
-
 % Opening psychtoolbox function ptb.
  ptb = PTBSettingsIOGMotion(setUp);
 
 
 %% DESIGN-RELATED:
-
 % Different design-related information.
 
 design = getInstructions();
@@ -67,6 +63,11 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
+
+%% REPETITION MATRIX FOR MOTION SIMULATION
+% TODO (VP): change limit of array from arbitrary 314 to a well thought
+% through value
+
 [design.xVertical, design.xHorizontal] = meshgrid(1:314);
 
 design.alphaMask1 = zeros(size(design.xHorizontal));
@@ -81,8 +82,6 @@ design.xVertical(:,:,3) = design.xVertical(:,:,1);
 design.xVertical(:,:,4) = design.alphaMask2;
 
 %% ALPHA MASKS -- MONDREAN MASKS
-
-
 % TODO (VP): make alpha mask values dynamic
 design.alphaMask1(:,1:157) = 1;
 design.alphaMask2(:,158:end) = 1;
@@ -191,7 +190,6 @@ end
 WaitSecs(0.5);
 
 %% INSTRUCTIONS:
-
 % Experimental instructions with texts (using experimental function from another mat script).
 try
     Experiment_Instructions(ptb,get,design);
@@ -204,7 +202,6 @@ end
 WaitSecs(0.5);
 
 %% DATA READING:
-
 try
     % Generate the file path based on subject number and run number
     dataFilePath = fullfile('../../rawdata/', sprintf('sub-%02d/sub-%02d_run-%02d_conditions.csv', get.subjectNumber, get.subjectNumber, get.runNumber));
@@ -221,15 +218,11 @@ try
 
 catch readingError
     sca;
+    close all;
     rethrow(readingError);
 end
 
 %% DELETION OF PREVIOUS KEYBOARD PRESSES AND INITIATION OF NEW KEYBOARD PRESSES MEMORY
-
-%% Stop and remove events in queue
-%     KbQueueStop(ptb.Keyboard2);
-%     KbEventFlush(ptb.Keyboard2);
-
     % Stop and remove events in queue for Keyboard2
     KbQueueStop(ptb.Keyboard2);
     KbEventFlush(ptb.Keyboard2);
@@ -238,135 +231,135 @@ end
     % Start the queue for Keyboard2
     KbQueueStart(ptb.Keyboard2);
 
-%% REPETITION MATRIX FOR MOTION SIMULATION
-
-% TODO (VP): change limit of array from arbitrary 314 to a well thought
-% through value
-
 
 %%  INTRODUCTION OF THE CASES/CONDITIONS:
-
 % Introducing the different conditions of the experiment along with assigned variables
 % Create 4D matrices for horizontal and vertical gratings
-
-for trial = 1:4
-    if any(strcmp(data.Motion1(trial), 'Upward'))
-        Motion1 = 1;
-
-        if any(strcmp(data.Motion2(trial), 'Rightward'))
-            Motion2 = -1;
-        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
-            Motion2 = 1;
+try
+    for trial = 1:4
+        if any(strcmp(data.Motion1(trial), 'Upward'))
+            Motion1 = 1;
+    
+            if any(strcmp(data.Motion2(trial), 'Rightward'))
+                Motion2 = -1;
+            elseif any(strcmp(data.Motion2(trial), 'Leftward'))
+                Motion2 = 1;
+            end
+    
+        elseif any(strcmp(data.Motion1(trial), 'Downward'))
+            Motion1 = -1;
+    
+            if any(strcmp(data.Motion2(trial), 'Rightward'))
+                Motion2 = -1;
+            elseif any(strcmp(data.Motion2(trial), 'Leftward'))
+                Motion2 = 1;
+            end
+            
+        elseif any(strcmp(data.Motion1(trial), 'No Motion'))
+            Motion1 = 0;
+            Motion2 = 0;
+        else
+            error('Impossible motion');
         end
-
-    elseif any(strcmp(data.Motion1(trial), 'Downward'))
-        Motion1 = -1;
-
-        if any(strcmp(data.Motion2(trial), 'Rightward'))
-            Motion2 = -1;
-        elseif any(strcmp(data.Motion2(trial), 'Leftward'))
-            Motion2 = 1;
+    
+        % get color indices for gratings
+        if strcmp(data.Color2(trial), 'Red')
+            turnoffIndicesVertical = 2:4;
+            turnoffIndicesHorizontal = [1 3 4];
+        elseif strcmp(data.Color2(trial), 'Green')
+            turnoffIndicesVertical = [1 3 4];
+            turnoffIndicesHorizontal = 2:4;
+        elseif strcmp(data.Color1(trial),'Black')
+            turnoffIndicesVertical = 4;
+            turnoffIndicesHorizontal = 4;
+        else
+            error('Impossible color')
         end
-        
-    elseif any(strcmp(data.Motion1(trial), 'No Motion'))
-        Motion1 = 0;
-        Motion2 = 0;
-    else
-        error('Impossible motion');
-    end
-
-    % get color indices for gratings
-    if strcmp(data.Color2(trial), 'Red')
-        turnoffIndicesVertical = 2:4;
-        turnoffIndicesHorizontal = [1 3 4];
-    elseif strcmp(data.Color2(trial), 'Green')
-        turnoffIndicesVertical = [1 3 4];
-        turnoffIndicesHorizontal = 2:4;
-    elseif strcmp(data.Color1(trial),'Black')
-        turnoffIndicesVertical = 4;
-        turnoffIndicesHorizontal = 4;
-    else
-        error('Impossible color')
-    end
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 0);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 1);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-    Screen('DrawingFinished', ptb.window);
-    vbl = Screen('Flip', ptb.window);
-    WaitSecs(design.ITI);
-
-    % get timing of trial onset
-    get.data.trialOnset(trial) = GetSecs;
-    % updating the x arrays 
-    while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
-
-        design.xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
-        design.xVertical = design.xVertical + Motion2 * design.stepSize;
     
-        % TODO (VP): set factor for sinus wave as a variable 
-        horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
-        leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
-    
-        verticalGrating = sin(design.xVertical*design.scalingFactor);
-        leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
-
-        leftScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
-        leftScaledVerticalGrating(:,:,turnoffIndicesVertical) = 0;
-
-        rightScaledHorizontalGrating = leftScaledHorizontalGrating;
-        rightScaledVerticalGrating = leftScaledVerticalGrating;
-    
-        leftScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
-        leftScaledVerticalGrating(:,:,4) = design.alphaMask2;
-       
-        rightScaledHorizontalGrating(:,:,4) = design.alphaMask2;
-        rightScaledVerticalGrating(:,:,4) = design.alphaMask1;
-
-        %% CREATION OF STIMULI AND CLOSING SCREENS
-        % Creation of experimental stimuli with different features (textures, colors…)
-       
-        % Select left image buffer for true color image:
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
-        Screen('DrawTexture', ptb.window, backGroundTexture);
-    
-        tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
-        Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
-    
-        tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);    % create texture for stimulus
-        Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
-    
         Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+                ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
     
-        % Select right image buffer for true color image:
         Screen('SelectStereoDrawBuffer', ptb.window, 1);
-        Screen('DrawTexture', ptb.window, backGroundTexture);
-    
-        tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
-        Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
-    
-        tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);     % create texture for stimulus
-        Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
-    
-        Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-    
+        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+                ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
         Screen('DrawingFinished', ptb.window);
         vbl = Screen('Flip', ptb.window);
+        WaitSecs(design.ITI);
     
-        Screen('Close', tex1);
-        Screen('Close', tex2);
-        Screen('Close', tex1Other);
-        Screen('Close', tex2Other);
-    end
+        % get timing of trial onset
+        get.data.trialOnset(trial) = GetSecs;
+        % updating the x arrays 
+        while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
+    
+            design.xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
+            design.xVertical = design.xVertical + Motion2 * design.stepSize;
+        
+            % TODO (VP): set factor for sinus wave as a variable 
+            horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.3
+            leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
+        
+            verticalGrating = sin(design.xVertical*design.scalingFactor);
+            leftScaledVerticalGrating = ((verticalGrating+1)/2) * design.contrast;
+    
+            leftScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
+            leftScaledVerticalGrating(:,:,turnoffIndicesVertical) = 0;
+    
+            rightScaledHorizontalGrating = leftScaledHorizontalGrating;
+            rightScaledVerticalGrating = leftScaledVerticalGrating;
+        
+            leftScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
+            leftScaledVerticalGrating(:,:,4) = design.alphaMask2;
+           
+            rightScaledHorizontalGrating(:,:,4) = design.alphaMask2;
+            rightScaledVerticalGrating(:,:,4) = design.alphaMask1;
+    
+            %% CREATION OF STIMULI AND CLOSING SCREENS
+            % Creation of experimental stimuli with different features (textures, colors…)
+           
+            % Select left image buffer for true color image:
+            Screen('SelectStereoDrawBuffer', ptb.window, 0);
+            Screen('DrawTexture', ptb.window, backGroundTexture);
+        
+            tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
+            Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
+        
+            tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);    % create texture for stimulus
+            Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
+        
+            Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+                ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+        
+            % Select right image buffer for true color image:
+            Screen('SelectStereoDrawBuffer', ptb.window, 1);
+            Screen('DrawTexture', ptb.window, backGroundTexture);
+        
+            tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
+            Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
+        
+            tex2Other = Screen('MakeTexture', ptb.window, rightScaledVerticalGrating);     % create texture for stimulus
+            Screen('DrawTexture', ptb.window, tex2Other, [], design.destinationRect);
+        
+            Screen('DrawLines', ptb.window, design.fixCrossCoords, ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+        
+            Screen('DrawingFinished', ptb.window);
+            vbl = Screen('Flip', ptb.window);
+        
+            Screen('Close', tex1);
+            Screen('Close', tex2);
+            Screen('Close', tex1Other);
+            Screen('Close', tex2Other);
+        end
     get.data.trialOffset(trial) = GetSecs;
+    end
+    
+catch stimuliGenerationError
+    sca;
+    close all;
+    rethrow(stimuliGenerationError);
 end
 
-%% saving data
+%% Saving Data
 get.end = 'Success';
 % get.participantsInfo = participantInfo;
 savedata(get,ptb,design)
