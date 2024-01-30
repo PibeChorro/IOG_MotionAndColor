@@ -276,35 +276,36 @@ try
             error('Impossible color');
         end
   
-        vbl = Screen('Flip', ptb.window);
+  
+    vbl = Screen('Flip', ptb.window);
 
-    
-        Screen('SelectStereoDrawBuffer', ptb.window, 0);
-        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-                ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
-    
-        Screen('SelectStereoDrawBuffer', ptb.window, 1);
-        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-                ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
-        Screen('DrawingFinished', ptb.window);
-        Screen('Flip', ptb.window);
 
-        if trial == 1
-            WaitSecs(5);
-        else
-            WaitSecs(design.ITI);
-        end
+    Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
 
-        Screen('SelectStereoDrawBuffer', ptb.window, 0);
-        Screen('DrawLines', ptb.window,design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
+    Screen('DrawingFinished', ptb.window);
+    Screen('Flip', ptb.window);
 
-        Screen('SelectStereoDrawBuffer', ptb.window, 1);
-        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-        Screen('DrawingFinished', ptb.window);
-        Screen('Flip', ptb.window);
-        WaitSecs(2);
+    if trial == 1
+        WaitSecs(5);
+    else
+        WaitSecs(design.ITI);
+    end
+
+    Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    Screen('DrawLines', ptb.window,design.fixCrossCoords, ...
+        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+
+    Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    Screen('DrawingFinished', ptb.window);
+    Screen('Flip', ptb.window);
+    WaitSecs(2);
 
         % get timing of trial onset
         get.data.trialOnset(trial) = GetSecs;
