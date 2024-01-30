@@ -49,6 +49,12 @@ mondreanMasks = make_mondrian_masks(double(design.mondreanInPixelsX), ...
 design.thisMask = rgb2gray(mondreanMasks{1});
 backGroundTexture = Screen('MakeTexture', ptb.window, design.thisMask);
 
+design.rectCoord = [...
+    (ptb.screenXpixels/2-design.stimSizeInPixelsX/2)/2 ...
+    (ptb.screenYpixels/2-design.stimSizeInPixelsY/2)/2 ...
+    (ptb.screenXpixels/2+design.stimSizeInPixelsX/2)*2 ...
+    (ptb.screenYpixels/2+design.stimSizeInPixelsY/2)*2];
+
 % resize stimuli
 % define a rectangle where the stimulus is drawn
 design.destinationRect = [...
@@ -62,7 +68,6 @@ design.fixCrossCoords = [
     -design.fixCrossInPixelsX/2 design.fixCrossInPixelsX/2 0 0; ...
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
-
 
 %% REPETITION MATRIX FOR MOTION SIMULATION
 % TODO (VP): change limit of array from arbitrary 314 to a well thought
@@ -340,6 +345,7 @@ try
             % Select left image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 0);
             Screen('DrawTexture', ptb.window, backGroundTexture);
+            Screen('FillRect', ptb.window, [128 128 128], design.rectCoord);
         
             tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
@@ -352,7 +358,9 @@ try
         
             % Select right image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 1);
+            
             Screen('DrawTexture', ptb.window, backGroundTexture);
+            Screen('FillRect', ptb.window, [128 128 128], design.rectCoord);
         
             tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
