@@ -49,12 +49,6 @@ mondreanMasks = make_mondrian_masks(double(design.mondreanInPixelsX), ...
 design.thisMask = rgb2gray(mondreanMasks{1});
 backGroundTexture = Screen('MakeTexture', ptb.window, design.thisMask);
 
-design.rectCoord = [...
-    (ptb.screenXpixels/2-design.stimSizeInPixelsX/2)/2 ...
-    (ptb.screenYpixels/2-design.stimSizeInPixelsY/2)/2 ...
-    (ptb.screenXpixels/2+design.stimSizeInPixelsX/2)*2 ...
-    (ptb.screenYpixels/2+design.stimSizeInPixelsY/2)*2];
-
 % resize stimuli
 % define a rectangle where the stimulus is drawn
 design.destinationRect = [...
@@ -62,6 +56,12 @@ design.destinationRect = [...
     ptb.screenYpixels/2-design.stimSizeInPixelsY/2 ...
     ptb.screenXpixels/2+design.stimSizeInPixelsX/2 ...
     ptb.screenYpixels/2+design.stimSizeInPixelsY/2];
+
+design.RectCoord = [...
+    ptb.screenXpixels/2-design.stimSizeInPixelsX/2 - 20 ...
+    ptb.screenYpixels/2-design.stimSizeInPixelsY/2 - 20 ...
+    ptb.screenXpixels/2+design.stimSizeInPixelsX/2 + 20 ...
+    ptb.screenYpixels/2+design.stimSizeInPixelsY/2 + 20];
 
 % fixation cross
 design.fixCrossCoords = [
@@ -86,7 +86,7 @@ design.xVertical(:,:,2) = design.xVertical(:,:,1);
 design.xVertical(:,:,3) = design.xVertical(:,:,1);
 design.xVertical(:,:,4) = design.alphaMask2;
 
-%% ALPHA MASKS -- MONDREAN MASKS
+%% ALPHA MASKS
 % TODO (VP): make alpha mask values dynamic
 design.alphaMask1(:,1:157) = 1;
 design.alphaMask2(:,158:end) = 1;
@@ -345,7 +345,7 @@ try
             % Select left image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 0);
             Screen('DrawTexture', ptb.window, backGroundTexture);
-            Screen('FillRect', ptb.window, [128 128 128], design.rectCoord);
+            Screen('FillRect', ptb.window, ptb.BackgroundColor, design.RectCoord);
         
             tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
@@ -360,7 +360,7 @@ try
             Screen('SelectStereoDrawBuffer', ptb.window, 1);
             
             Screen('DrawTexture', ptb.window, backGroundTexture);
-            Screen('FillRect', ptb.window, [128 128 128], design.rectCoord);
+            Screen('FillRect', ptb.window, ptb.BackgroundColor, design.RectCoord);
         
             tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
