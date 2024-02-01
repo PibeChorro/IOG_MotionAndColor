@@ -257,6 +257,8 @@ end
 instructionsArray_2 = {
     ['In the experiment the stimuli can also be colored\n' ...
     'In red and green, and the gratings may also be moving.']
+    ['Now you will conduct a small training session\n' ...
+    'so that you become familiar with the task.'];
     ['REMINDER: Keep pressing ' upper(monocular) '\n' ...
     ' if you see two different\n' ...
     'gratings, and ' upper(binocular) ' if you\n' ...
@@ -265,13 +267,14 @@ instructionsArray_2 = {
     ' as shown before. Also, please keep your eyes\n' ...
     ' fixated on the cross in the middle\n' ...
     ' of the stimulus. Press any key to continue...'];
+    ['Get ready...'];
     ['Now you will be re-directed to the actual experiment.\n' ...
     'Get ready...' ...
     ' Press any key to continue'];
     };
 
 if get.runNumber > 1
-   TextDisplay = instructionsArray_2{2};
+   TextDisplay = instructionsArray_2{3:4};
    Screen('SelectStereoDrawBuffer', ptb.window, 0);
     
     DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
@@ -288,8 +291,8 @@ if get.runNumber > 1
     % Wait for any key press
     WaitSecs(0.5);
     KbWait();
-else
-    for i = 1:length(instructionsArray_2)
+elseif get.runNumber == 1
+    for i = 1:3
         TextDisplay = instructionsArray_2{i};
         
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -309,4 +312,31 @@ else
         WaitSecs(0.5);
         KbWait();
     end
+
+        try 
+            training_session_IOG(ptb,get,design)
+        catch trainingERROR
+            sca;
+            close all;
+            rethrow(trainingERROR);
+        end
+
+        TextDisplay = instructionsArray_2{5};
+        Screen('SelectStereoDrawBuffer', ptb.window, 0);
+        
+        DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
+        
+        Screen('SelectStereoDrawBuffer', ptb.window, 1);
+        
+        DrawFormattedText(ptb.window, TextDisplay,'center', 'center');
+        
+        % Tell PTB drawing is finished for this frame:
+        Screen('DrawingFinished', ptb.window);
+        
+        Screen('Flip', ptb.window);
+        
+        % Wait for any key press
+        WaitSecs(0.5);
+        KbWait();
+end
 end
