@@ -1,4 +1,4 @@
-function Flicker_Test_IOG(ptb, design)
+function [participantInfo] = Flicker_Test_IOG(ptb, design,participantInfo)
 %isolumSingleColorFlickerMethod: this function creates a table with
 %subjectively equiluminant RGB-values
 %   input:
@@ -9,6 +9,9 @@ function Flicker_Test_IOG(ptb, design)
 %   The function reads in a table of RGB-values extracted from the stimuli
 %   used in this experiment. The RGB-values are used in the flicker task to
 %   get subjectively equiluminant colors
+
+participantInfo.equiluminantRed = [0.76 0 0];       % values that were equiluminant for VP
+participantInfo.equiluminantGreen = [0 0.5 0];      % values that were equiluminant for VP
 
 %% design related stuff
 % the color pairs that need to be made equiluminant
@@ -64,24 +67,23 @@ ListenChar(2)
 
     % before we start we gammaficate the colors so that when we linearize
     % the color, we still start at the same color
-    design.redColor = img_gammaConvert(invLUT,design.redColor);
-    design.greenColor = img_gammaConvert(invLUT,design.greenColor);
+    participantInfo.equiluminantRed = img_gammaConvert(invLUT,participantInfo.equiluminantRed);
+    participantInfo.equiluminantGreen = img_gammaConvert(invLUT,participantInfo.equiluminantGreen);
     % luminance factors
     curOneLumFactor     = [1 1 1]; 
     curOtherLumFactor   = [1 1 1];
 
     % maximum factor to avoid exceeding boundaries
-    maxCurOneLumFactor = 1./max(design.redColor);
-    maxCurOtherLumFactor = 1./max(design.greenColor);
+    maxCurOneLumFactor = 1./max(participantInfo.equiluminantRed);
+    maxCurOtherLumFactor = 1./max(participantInfo.equiluminantGreen);
 
     curFrame = 1;
     spaceDown = 0;  % Has P pressed the space bar?
     responseKeyReleased = 1;    % Has P released response key?
-    tic
     while ~spaceDown
         % gamma correction
-        correctedOneColor  = img_gammaConvert(LUT,design.redColor.*curOneLumFactor);
-        correctedOtherColor = img_gammaConvert(LUT,design.greenColor.*curOtherLumFactor);
+        correctedOneColor  = img_gammaConvert(LUT,participantInfo.equiluminantRed.*curOneLumFactor);
+        correctedOtherColor = img_gammaConvert(LUT,participantInfo.equiluminantGreen.*curOtherLumFactor);
     
         % Select   left-eye image buffer for drawing:
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -121,13 +123,9 @@ ListenChar(2)
 
                 case confirmButton
                     fprintf('Accepted\n')
-                    design.redColor(1) = correctedOneColor(1);
-                    design.redColor(2) = correctedOneColor(2);
-                    design.redColor(3) = correctedOneColor(3);
+                    participantInfo.equiluminantRed = correctedOneColor;
 
-                    design.greenColor(1) = correctedOtherColor(1);
-                    design.greenColor(2) = correctedOtherColor(2);
-                    design.greenColor(3) = correctedOtherColor(3);
+                    participantInfo.equiluminantGreen = correctedOtherColor;
 
                     while KbCheck; end % Wait until all keys have been released
                     spaceDown = 1;    % P confirmed adjustment
@@ -151,10 +149,6 @@ ListenChar(2)
         end % if keyIsDown
         curFrame = curFrame + 1;
         Screen('Flip',ptb.window);
-        toc
     end
     ListenChar(0);                                                          % enable button input
-% save the equiluminant colors
-% saveDir = fullfile(log.subjectDirectory, 'stimuli', 'equilumColors.csv');
-% writetable(equilumColorTable,saveDir);
 end
