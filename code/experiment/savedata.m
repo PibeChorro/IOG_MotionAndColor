@@ -79,7 +79,7 @@ function savedata(get,ptb,design)
         [resultsTable, success] = formatResponses(get,ptb);
         if success
             % save table as csv file
-            writetable(resultsTable, fullfile(get.subjectDirectory, [fileName '.csv']));
+            writetable(resultsTable, fullfile(get.folderName, [fileName '.csv']));
         else
             fprintf('Could not save results table');
         end
