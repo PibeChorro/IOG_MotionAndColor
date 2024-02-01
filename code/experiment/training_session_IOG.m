@@ -1,6 +1,7 @@
 function training_session_IOG(ptb, get, design)
 
-design.stimulusPresentationTime = 30 - ptb.ifi/2;
+design.stimulusPresentationTime = 10 - ptb.ifi/2;
+design.ITI                      = 3 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                               % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
 design.scalingFactor            = 0.1;
@@ -68,6 +69,8 @@ end
 % 
 % % Start the queue for Keyboard2
 % KbQueueStart(ptb.Keyboard2);
+
+    for trial = 1:4
 
         Motion1 = 1;
         Motion2 = 1;
@@ -162,4 +165,5 @@ end
             Screen('Close', tex1Other);
             Screen('Close', tex2Other);
         end
+    end
 end
