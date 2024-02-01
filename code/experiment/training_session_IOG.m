@@ -1,14 +1,11 @@
 function training_session_IOG(ptb, get, design)
 
-design.stimulusPresentationTime = 10 - ptb.ifi/2;
-design.ITI                      = 3 - ptb.ifi/2;
+design.stimulusPresentationTime = 30 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                               % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
 design.scalingFactor            = 0.1;
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
-design.mondreanInDegrees        = 5;
-design.whiteBackgroundInDegrees = 2.5;
 design.useET = false;
 
 design.stimSizeInPixelsX        = round(ptb.PixPerDegWidth*design.stimSizeInDegrees);
@@ -62,58 +59,39 @@ else
     disp('Error: Data file not found. Please make sure the file path is correct.');
 end
 
-% Stop and remove events in queue for Keyboard2
-% KbQueueStop(ptb.Keyboard2);
-% KbEventFlush(ptb.Keyboard2);
-% KbQueueCreate(ptb.Keyboard2);
-% 
-% % Start the queue for Keyboard2
-% KbQueueStart(ptb.Keyboard2);
-
-    for trial = 1:4
-
         Motion1 = 1;
-        Motion2 = 1;
+        Motion2 = -1;
     
         % get color indices for gratings
 
         turnoffIndicesVertical = 2:4;
         turnoffIndicesHorizontal = [1 3 4];
 
-    vbl = Screen('Flip', ptb.window);
+        vbl = Screen('Flip', ptb.window);
+    
+        % fixation cross drawing
+        Screen('SelectStereoDrawBuffer', ptb.window, 0);
+        Screen('DrawLines', ptb.window,design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+    
+        Screen('SelectStereoDrawBuffer', ptb.window, 1);
+        Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
+            ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
+        Screen('DrawingFinished', ptb.window);
+        Screen('Flip', ptb.window);
 
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 0);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 1);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-            ptb.lineWidthInPix, ptb.black, [ptb.xCenter ptb.yCenter]);
-    Screen('DrawingFinished', ptb.window);
-    Screen('Flip', ptb.window);
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 0);
-    Screen('DrawLines', ptb.window,design.fixCrossCoords, ...
-        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-
-    Screen('SelectStereoDrawBuffer', ptb.window, 1);
-    Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
-        ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
-    Screen('DrawingFinished', ptb.window);
-    Screen('Flip', ptb.window);
-    WaitSecs(2);
+        WaitSecs(design.ITI);
 
         % get timing of trial onset
-        get.data.trialOnset(trial) = GetSecs;
+        get.data.trialOnset = GetSecs;
         % updating the x arrays 
-        while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
-        
+        while vbl - get.data.trialOnset < design.stimulusPresentationTime
+            
             design.xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
             design.xVertical = design.xVertical + Motion2 * design.stepSize;
         
             % TODO (VP): set factor for sinus wave as a variable 
-            horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.1 (CPM oder CPD?)
+            horizontalGrating = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.1
             leftScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
         
             verticalGrating = sin(design.xVertical*design.scalingFactor);
@@ -142,7 +120,6 @@ end
         
             tex2 = Screen('MakeTexture', ptb.window, leftScaledVerticalGrating);    % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex2, [], design.destinationRect);
-        
             Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
                 ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
         
@@ -165,5 +142,4 @@ end
             Screen('Close', tex1Other);
             Screen('Close', tex2Other);
         end
-    end
 end
