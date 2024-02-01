@@ -1,8 +1,11 @@
-function [horizontalOffset,verticalOffset] = alignFusion(ptb, design)
+function [horizontalOffset,verticalOffset] = alignFusion(ptb)
 % alignFusion: Find the disparity that creates fusion in the subject
 %   Draw a frame with text on both sides of the screen
 %   The subject can move the frame in any direction until it is fused
 %   returns: the offset in x and y 
+
+FusionText   = ['Fusion test: use the left and right keys\n' ... 
+    'to adjust or press to continue'];
 ListenChar(2);
     horizontalOffset = 0;
     verticalOffset = 0;
@@ -22,7 +25,7 @@ ListenChar(2);
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
         Screen('FrameRect', ptb.window, 0, CenterRectOnPoint([0 0 framesize framesize], ptb.xCenter, ptb.yCenter), 10);
 
-        DrawFormattedText(ptb.window, design.FusionText,'center', 'center', ...
+        DrawFormattedText(ptb.window, FusionText,'center', 'center', ...
             0, 20, [], [], [], [], CenterRectOnPoint([0 0 framesize framesize], ...
             ptb.xCenter, ptb.yCenter)); % is this needed?
 
@@ -31,7 +34,7 @@ ListenChar(2);
         Screen('FrameRect', ptb.window, 0,  CenterRectOnPoint([0 0 framesize framesize], ...
             ptb.xCenter, ptb.yCenter), 10);
     
-        DrawFormattedText(ptb.window, design.FusionText,'center', 'center', ...
+        DrawFormattedText(ptb.window, FusionText,'center', 'center', ...
             0, 20, [], [], [], [], CenterRectOnPoint([0 0 framesize framesize], ...
             ptb.xCenter, ptb.yCenter)); % is this needed?
 
