@@ -28,13 +28,7 @@ instructionsArray_1 = {
     ['In the following instructions, \n '...
     'you will see all the possible\n' ...
     ' percepts you may encounter in the experiment.\n' ...
-    ' Press any key to continue'];
-
-    % the window screen of IOG and monocular percepts shown with text
-    % inclusive
-    
-    % Then, window screen of mixed piecemeal percepts with included texts
-
+    ' Press any key to continue']
     };
 
 for inst1 = 1:length(instructionsArray_1)
@@ -53,9 +47,8 @@ for inst1 = 1:length(instructionsArray_1)
         Screen('DrawingFinished', ptb.window);
         
         Screen('Flip', ptb.window);
-        
         KbWait();
-        WaitSecs(0.5);
+        WaitSecs(2);
     end
 end
 
@@ -320,6 +313,7 @@ elseif get.runNumber == 1
             close all;
             rethrow(trainingERROR);
         end
+        WaitSecs(0.5);
 
         TextDisplay = instructionsArray_2{5};
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
