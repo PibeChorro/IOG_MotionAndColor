@@ -16,7 +16,6 @@ end
 %% DESIGN-RELATED:
 % Different design-related information.
 
-design = getInstructions();
 % the scenario determines the type(s) of low level cues for interocular
 % grouping:
 
@@ -25,10 +24,8 @@ design = getInstructions();
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
 
-design.stimulusPresentationTime = 120 - ptb.ifi/2;
-design.ITI                      = 25 - ptb.ifi/2;
-design.redColor                 = [1 0 0];
-design.greenColor               = [0 1 0];
+design.stimulusPresentationTime = 6 - ptb.ifi/2;
+design.ITI                      = 1 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                                % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
 design.scalingFactor            = 0.1;
@@ -118,9 +115,22 @@ get.folderName = fullfile('../../rawdata/', sprintf('sub-%02d', get.subjectNumbe
 if ~exist(get.folderName, 'dir')
     mkdir(get.folderName);
 end
+
+%% FUSION TEST:
+% Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
+try
+    alignFusion(ptb);
+catch alignFusionError
+    sca;
+    rethrow(alignFusionError);
+end
+
+WaitSecs(0.5);
+Screen('Flip',ptb.window);
+
 if ~exist(fullfile(get.folderName, 'participantInfo.mat'),'file')
     % Initialize participantInfo structure
-    participantInfo = struct('age', [], 'gender', [], 'ExperimentStatus', 'Not Completed');
+    participantInfo = struct;
     
     while true
         % Collect participant information
@@ -161,8 +171,24 @@ if ~exist(fullfile(get.folderName, 'participantInfo.mat'),'file')
             end
         end
     end
+    % FLICKER TEST:
+    % Flicker test to make sure luminance for red and green are equal during
+    % the experiment
+    
+    try
+        participantInfo = Flicker_Test_IOG(ptb,design,participantInfo);
+    catch flickerTestError
+        sca;
+        close all;
+        rethrow(flickerTestError);
+    end
+
+    WaitSecs(0.5);
     % save participants info
     save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
+    Screen('Flip',ptb.window);
+else
+    load(fullfile(get.folderName, 'participantInfo.mat'));
 end
 
 while true
@@ -184,31 +210,6 @@ else % if subjectNumber is not divisible without 0 remainders (aka number is odd
     ptb.Keys.right = ptb.Keys.monocular; 
     ptb.Keys.left = ptb.Keys.interocular;
 end
-
-%% FUSION TEST:
-% Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
-try
-    alignFusion(ptb, design);
-catch alignFusionError
-    sca;
-    rethrow(alignFusionError);
-end
-
-WaitSecs(0.5);
-
-%% FLICKER TEST:
-% Flicker test to make sure luminance for red and green are equal during
-% the experiment
-
-try
-    Flicker_Test_IOG(ptb,design);
-catch flickerTestError
-    sca;
-    close all;
-    rethrow(flickerTestError);
-end
-
-WaitSecs(0.5);
 
 %% INSTRUCTIONS:
 % Experimental instructions with texts (using experimental function from another mat script).
