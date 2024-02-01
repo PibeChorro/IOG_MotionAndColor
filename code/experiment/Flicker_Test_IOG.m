@@ -153,7 +153,7 @@ ListenChar(2)
         Screen('Flip',ptb.window);
         toc
     end
-
+    ListenChar(0);                                                          % enable button input
 % save the equiluminant colors
 % saveDir = fullfile(log.subjectDirectory, 'stimuli', 'equilumColors.csv');
 % writetable(equilumColorTable,saveDir);

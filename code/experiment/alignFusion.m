@@ -3,6 +3,7 @@ function [horizontalOffset,verticalOffset] = alignFusion(ptb, design)
 %   Draw a frame with text on both sides of the screen
 %   The subject can move the frame in any direction until it is fused
 %   returns: the offset in x and y 
+ListenChar(2);
     horizontalOffset = 0;
     verticalOffset = 0;
     change = 0.003;
@@ -67,4 +68,5 @@ function [horizontalOffset,verticalOffset] = alignFusion(ptb, design)
                 fprintf('x-offset: %100.2f, y-offset:%100.2f \n', horizontalOffset, verticalOffset);
         end
     end
+ListenChar(0);
 end
