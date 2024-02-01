@@ -27,6 +27,8 @@ design = getInstructions();
 
 design.stimulusPresentationTime = 120 - ptb.ifi/2;
 design.ITI                      = 25 - ptb.ifi/2;
+design.redColor                 = [1 0 0];
+design.greenColor               = [0 1 0];
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                                % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
 design.scalingFactor            = 0.1;
@@ -190,6 +192,20 @@ try
 catch alignFusionError
     sca;
     rethrow(alignFusionError);
+end
+
+WaitSecs(0.5);
+
+%% FLICKER TEST:
+% Flicker test to make sure luminance for red and green are equal during
+% the experiment
+
+try
+    Flicker_Test_IOG(ptb,design);
+catch flickerTestError
+    sca;
+    close all;
+    rethrow(flickerTestError);
 end
 
 WaitSecs(0.5);

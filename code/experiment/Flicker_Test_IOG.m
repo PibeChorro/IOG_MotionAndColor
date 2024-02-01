@@ -1,4 +1,4 @@
-function isolumSingleColorFlickerMethod(log, ptb)
+function Flicker_Test_IOG(ptb, design)
 %isolumSingleColorFlickerMethod: this function creates a table with
 %subjectively equiluminant RGB-values
 %   input:
@@ -12,12 +12,6 @@ function isolumSingleColorFlickerMethod(log, ptb)
 
 %% design related stuff
 % the color pairs that need to be made equiluminant
-allColors = {
-    'red', ...
-    'green', ...
-    'blue', ...
-    'yellow'
-    };
 
 design.grayBackgroundInDegrees  = 3;
 design.grayBackgroundInPixelsX  = round(ptb.PixPerDegWidth* 2 *design.grayBackgroundInDegrees); 
@@ -56,65 +50,38 @@ switch ptb.SetUp
         LUT = round(cal.iGammaTable*255); 
         invLUT = round(cal.gammaTable*255);
     otherwise
-        error('No valid setup choise')
-end
-
-colorDirectory = fullfile(log.stimDir,'single_color_values.csv');
-% read in table with typical colors
-try
-    typicalColorTable = readtable(colorDirectory);
-catch READINGERROR
-    fprintf('Could not read the color table\n\n');
-    rethrow(READINGERROR)
+        disp('WARNING!!! Set up is not monitor-specific');
+        LUT = repmat(0:255,3,1)';
+        invLUT = repmat(0:255,3,1)';
 end
 
 % Disable keyboard output to Matlab
 ListenChar(2)
 
-log.numStimuli = size(typicalColorTable,1);
-
-
 %% get equiluminant colors 
 % create copy of color table to fill up with equiluminant values
-equilumColorTable = typicalColorTable;
-% iterate over the four colors
-for color = 1:length(allColors)
-    idx1 = find(strcmp(typicalColorTable.color,['true_' allColors{color}]));
-    idx2 = find(strcmp(typicalColorTable.color,['inv_' allColors{color}]));
-
-    % get true color values
-    oneColor = [
-        typicalColorTable.R(idx1) ...
-        typicalColorTable.G(idx1) ...
-        typicalColorTable.B(idx1)
-        ];
-
-    % get inverted color values
-    otherColor = [
-        typicalColorTable.R(idx2) ...
-        typicalColorTable.G(idx2) ...
-        typicalColorTable.B(idx2)
-        ];
+% iterate over the two colors
 
     % before we start we gammaficate the colors so that when we linearize
     % the color, we still start at the same color
-    oneColor = img_gammaConvert(invLUT,oneColor);
-    otherColor = img_gammaConvert(invLUT,otherColor);
+    design.redColor = img_gammaConvert(invLUT,design.redColor);
+    design.greenColor = img_gammaConvert(invLUT,design.greenColor);
     % luminance factors
     curOneLumFactor     = [1 1 1]; 
     curOtherLumFactor   = [1 1 1];
 
     % maximum factor to avoid exceeding boundaries
-    maxCurOneLumFactor = 1./max(oneColor);
-    maxCurOtherLumFactor = 1./max(otherColor);
+    maxCurOneLumFactor = 1./max(design.redColor);
+    maxCurOtherLumFactor = 1./max(design.greenColor);
 
     curFrame = 1;
     spaceDown = 0;  % Has P pressed the space bar?
     responseKeyReleased = 1;    % Has P released response key?
+    tic
     while ~spaceDown
         % gamma correction
-        correctedOneColor  = img_gammaConvert(LUT,oneColor.*curOneLumFactor);
-        correctedOtherColor = img_gammaConvert(LUT,otherColor.*curOtherLumFactor);
+        correctedOneColor  = img_gammaConvert(LUT,design.redColor.*curOneLumFactor);
+        correctedOtherColor = img_gammaConvert(LUT,design.greenColor.*curOtherLumFactor);
     
         % Select   left-eye image buffer for drawing:
         Screen('SelectStereoDrawBuffer', ptb.window, 0);
@@ -154,13 +121,13 @@ for color = 1:length(allColors)
 
                 case confirmButton
                     fprintf('Accepted\n')
-                    equilumColorTable.R(idx1) = correctedOneColor(1);
-                    equilumColorTable.G(idx1) = correctedOneColor(2);
-                    equilumColorTable.B(idx1) = correctedOneColor(3);
+                    design.redColor(1) = correctedOneColor(1);
+                    design.redColor(2) = correctedOneColor(2);
+                    design.redColor(3) = correctedOneColor(3);
 
-                    equilumColorTable.R(idx2) = correctedOtherColor(1);
-                    equilumColorTable.G(idx2) = correctedOtherColor(2);
-                    equilumColorTable.B(idx2) = correctedOtherColor(3);
+                    design.greenColor(1) = correctedOtherColor(1);
+                    design.greenColor(2) = correctedOtherColor(2);
+                    design.greenColor(3) = correctedOtherColor(3);
 
                     while KbCheck; end % Wait until all keys have been released
                     spaceDown = 1;    % P confirmed adjustment
@@ -184,11 +151,10 @@ for color = 1:length(allColors)
         end % if keyIsDown
         curFrame = curFrame + 1;
         Screen('Flip',ptb.window);
+        toc
     end
-end
 
 % save the equiluminant colors
-saveDir = fullfile(log.subjectDirectory, 'stimuli', 'equilumColors.csv');
-writetable(equilumColorTable,saveDir);
-
+% saveDir = fullfile(log.subjectDirectory, 'stimuli', 'equilumColors.csv');
+% writetable(equilumColorTable,saveDir);
 end
