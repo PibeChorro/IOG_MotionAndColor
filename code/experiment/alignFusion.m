@@ -5,7 +5,7 @@ function [horizontalOffset,verticalOffset] = alignFusion(ptb)
 %   returns: the offset in x and y 
 
 FusionText   = ['Fusion test: use the left and right keys\n' ... 
-    'to adjust or press to continue'];
+    'to adjust and the middle key to continue'];
 ListenChar(2);
     horizontalOffset = 0;
     verticalOffset = 0;
