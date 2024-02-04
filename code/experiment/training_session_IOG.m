@@ -1,5 +1,7 @@
 function training_session_IOG(ptb, get, design)
 
+get.trainingData = false;
+
 design.stimulusPresentationTime = 30 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                               % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
@@ -58,6 +60,7 @@ if exist(dataFilePath, 'file')
 else
     disp('Error: Data file not found. Please make sure the file path is correct.');
 end
+
 
         Motion1 = 1;
         Motion2 = -1;
@@ -142,4 +145,11 @@ end
             Screen('Close', tex1Other);
             Screen('Close', tex2Other);
         end
+
+    %% Saving Data
+    get.end = 'Success';
+    get.trainingData = true;
+    savedata(get,ptb,design)
+    Screen('CloseAll');
+
 end
