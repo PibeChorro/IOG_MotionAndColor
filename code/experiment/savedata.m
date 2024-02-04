@@ -25,9 +25,13 @@ function savedata(get,ptb,design)
     end
 
     % filename dependent on task [objects|gratings] and run [1-6]
-    fileName = sprintf('sub-%02d_task-IOG_run-%02d',get.subjectNumber,get.runNumber); %[get.sub '_task-' get.task sprintf('_run-%02d',get.runNr)];
+    if get.trainingData == true
+        fileName = sprintf('sub-%02d_task_IOG_training', get.subjectNumber);
+    else
+        fileName = sprintf('sub-%02d_task_IOG_run-%02d',get.subjectNumber,get.runNumber);
+    end
 
-    get.subjectDirectory = sprintf('../../sourcedata/sub-%02d', get.subjectNumber);
+    get.subjectDirectory = sprintf(['..', filesep, '..', filesep, 'sourcedata', filesep, 'sub-%02d'], get.subjectNumber);
     if ~exist(get.subjectDirectory, 'dir')
         mkdir(get.subjectDirectory)
     end
@@ -78,7 +82,6 @@ function savedata(get,ptb,design)
         end
         [resultsTable, success] = formatResponses(get,ptb);
         if success
-            % save table as csv file
             writetable(resultsTable, fullfile(get.folderName, [fileName '.csv']));
         else
             fprintf('Could not save results table');
