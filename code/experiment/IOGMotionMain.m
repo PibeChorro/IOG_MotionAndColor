@@ -5,7 +5,7 @@ function IOGMotionMain(setUp)
 
 % Setup input for the monitor being used.
 if nargin < 1
-    setUp = 'CIN-experimentroom';
+    setUp = 'Sarah Laptop';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -162,19 +162,6 @@ if ~exist(fullfile(get.folderName, 'participantInfo.mat'),'file')
         end
     end
 
-    % FLICKER TEST:
-    % Flicker test to make sure luminance for red and green are equal during
-    % the experiment
-
-    try
-        participantInfo = Flicker_Test_IOG(ptb,design,participantInfo);
-    catch flickerTestError
-        sca;
-        close all;
-        rethrow(flickerTestError);
-    end
-    
- 
     WaitSecs(0.5);
     % save participants info
     save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
@@ -220,7 +207,7 @@ end
 %% INSTRUCTIONS:
 % Experimental instructions with texts (using experimental function from another mat script).
 try
-    Experiment_Instructions(ptb,get,design);
+    Experiment_Instructions(ptb,get,design,participantInfo);
 catch instructionsError
     sca;
     close all;
