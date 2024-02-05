@@ -8,6 +8,12 @@ else
 end
 
 instructionsArray_1 = {
+    ['To make sure color luminance is equal throughout\n ' ...
+    'the experiment, you will now conduct a Flicker Test.\n ' ...
+    'You will see one rectangle, and what you need to do is\n' ...
+    'press the right or left key consistently\n' ...
+    ' until the square does not flicker anymore\n' ...
+    'Press the middle key when you are done.'];
     ['Thank you for choosing to participate in this study\n '...
     'involving interocular grouping.\n' ...
     'By pressing any key button, you will be \n '...
@@ -31,7 +37,81 @@ instructionsArray_1 = {
     ' Press any key to continue']
     };
 
-for inst1 = 1:length(instructionsArray_1)
+if get.runNumber == 1
+    TextDisplay = instructionsArray_1{1};
+    Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    DrawFormattedText(ptb.window, TextDisplay, 'center', 'center');
+    Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    DrawFormattedText(ptb.window, TextDisplay, 'center', 'center');
+    Screen('DrawingFinished', ptb.window);
+    Screen('Flip', ptb.window);
+    KbWait();
+end
+
+if ~exist(fullfile(get.folderName, 'participantInfo.mat'),'file')
+    % Initialize participantInfo structure
+    participantInfo = struct;
+    
+    while true
+        % Collect participant information
+        participantInfo.age = input('Enter your age: ','s');
+        [age, valid] = str2num(participantInfo.age);
+        % Check if the input is a valid numeric value
+        if valid
+            % check subject age and if accidentally a complex
+            % number was given
+            if (age >= 18) && (isreal(age))
+                participantInfo.age = age; 
+                break;
+            end
+        else % Convert the valid input to a number
+            disp('Invalid input. Please enter a valid numeric value for the subject number.');
+        end
+    end
+    
+    % Get gender from user input (1 for male, 2 for female)
+    
+    while true
+        gender = input('Enter your gender (1 for male, 2 for female, 3 for other): ', 's');
+        
+        % Check if the input is a valid numeric value
+        if isempty(str2double(gender)) || ~ismember(str2double(gender), [1, 2, 3])
+            disp('Invalid input. Please enter 1 for male, 2 for female or 3 for other');
+        else
+            % Convert gender to a string representation
+            if str2double(gender) == 1
+                participantInfo.gender = 'male';
+                break;  % Exit the loop if a valid number is entered
+            elseif str2double(gender) == 2
+                participantInfo.gender = 'female';
+                break;  % Exit the loop if a valid number is entered
+            else
+                participantInfo.gender = 'other';
+                break;  % Exit the loop if a valid number is entered
+            end
+        end
+    end
+    % FLICKER TEST:
+    % Flicker test to make sure luminance for red and green are equal during
+    % the experiment
+
+    try
+        participantInfo = Flicker_Test_IOG(ptb,design,participantInfo);
+    catch flickerTestError
+        sca;
+        close all;
+        rethrow(flickerTestError);
+    end
+ 
+    WaitSecs(0.5);
+    % save participants info
+    save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
+    Screen('Flip',ptb.window);
+else
+    load(fullfile(get.folderName, 'participantInfo.mat'));
+end
+
+for inst1 = 2:4
     if get.runNumber == 1
         TextDisplay = instructionsArray_1{inst1};
         
@@ -48,10 +128,9 @@ for inst1 = 1:length(instructionsArray_1)
         
         Screen('Flip', ptb.window);
         KbWait();
-        WaitSecs(2);
+        WaitSecs(1);
     end
 end
-
 
 if get.runNumber == 1
     [xVertical, xHorizontal] = meshgrid(1:314);

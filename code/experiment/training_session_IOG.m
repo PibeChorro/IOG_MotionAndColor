@@ -1,5 +1,7 @@
 function training_session_IOG(ptb, get, design)
 
+get.trainingData = false;
+
 design.stimulusPresentationTime = 30 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                               % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
@@ -27,6 +29,8 @@ design.fixCrossCoords = [
     -design.fixCrossInPixelsX/2 design.fixCrossInPixelsX/2 0 0; ...
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
+
+backGroundTexture = Screen('MakeTexture', ptb.window, design.thisMask);
 
 [design.xVertical, design.xHorizontal] = meshgrid(1:314);
 
@@ -59,6 +63,7 @@ else
     disp('Error: Data file not found. Please make sure the file path is correct.');
 end
 
+
         Motion1 = 1;
         Motion2 = -1;
     
@@ -80,7 +85,7 @@ end
         Screen('DrawingFinished', ptb.window);
         Screen('Flip', ptb.window);
 
-        WaitSecs(design.ITI);
+WaitSecs(3);
 
         % get timing of trial onset
         get.data.trialOnset = GetSecs;
@@ -114,6 +119,7 @@ end
            
             % Select left image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    Screen('DrawTexture', ptb.window, backGroundTexture);
         
             tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
@@ -125,6 +131,7 @@ end
         
             % Select right image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    Screen('DrawTexture', ptb.window, backGroundTexture);
         
             tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
@@ -142,4 +149,9 @@ end
             Screen('Close', tex1Other);
             Screen('Close', tex2Other);
         end
+get.data.trialOffset = GetSecs;
+    %% Saving Data
+    get.end = 'Success';
+    get.trainingData = true;
+    savedata(get,ptb,design)
 end
