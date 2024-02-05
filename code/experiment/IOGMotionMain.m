@@ -158,6 +158,7 @@ catch instructionsError
     rethrow(instructionsError);
 end
 
+get.trainingData = false;
 WaitSecs(0.5);
 
 %% DATA READING:

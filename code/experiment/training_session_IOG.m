@@ -30,6 +30,8 @@ design.fixCrossCoords = [
     0 0 -design.fixCrossInPixelsY/2 design.fixCrossInPixelsY/2
     ];
 
+backGroundTexture = Screen('MakeTexture', ptb.window, design.thisMask);
+
 [design.xVertical, design.xHorizontal] = meshgrid(1:314);
 
 design.alphaMask1 = zeros(size(design.xHorizontal));
@@ -83,7 +85,7 @@ end
         Screen('DrawingFinished', ptb.window);
         Screen('Flip', ptb.window);
 
-        WaitSecs(design.ITI);
+WaitSecs(3);
 
         % get timing of trial onset
         get.data.trialOnset = GetSecs;
@@ -117,6 +119,7 @@ end
            
             % Select left image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 0);
+    Screen('DrawTexture', ptb.window, backGroundTexture);
         
             tex1 = Screen('MakeTexture', ptb.window, leftScaledHorizontalGrating);  % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1, [], design.destinationRect);
@@ -128,6 +131,7 @@ end
         
             % Select right image buffer for true color image:
             Screen('SelectStereoDrawBuffer', ptb.window, 1);
+    Screen('DrawTexture', ptb.window, backGroundTexture);
         
             tex1Other = Screen('MakeTexture', ptb.window, rightScaledHorizontalGrating);     % create texture for stimulus
             Screen('DrawTexture', ptb.window, tex1Other, [], design.destinationRect);
@@ -145,11 +149,9 @@ end
             Screen('Close', tex1Other);
             Screen('Close', tex2Other);
         end
-
+get.data.trialOffset = GetSecs;
     %% Saving Data
     get.end = 'Success';
     get.trainingData = true;
     savedata(get,ptb,design)
-    Screen('CloseAll');
-
 end
