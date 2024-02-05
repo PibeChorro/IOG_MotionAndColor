@@ -1,4 +1,4 @@
-function Experiment_Instructions(ptb,get,design)
+function Experiment_Instructions(ptb,get,design,participantInfo)
 if mod(get.subjectNumber,2) == 0
     monocular = 'left';
     binocular = 'right';
@@ -47,6 +47,22 @@ if get.runNumber == 1
     Screen('Flip', ptb.window);
     KbWait();
 end
+    
+    % FLICKER TEST:
+    % Flicker test to make sure luminance for red and green are equal during
+    % the experiment
+
+    try
+        participantInfo = Flicker_Test_IOG(ptb,design,participantInfo);
+    catch flickerTestError
+        sca;
+        close all;
+        rethrow(flickerTestError);
+    end
+ 
+    WaitSecs(0.5);
+    % save participants info
+    save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
 
 for inst1 = 2:4
     if get.runNumber == 1
@@ -65,7 +81,7 @@ for inst1 = 2:4
         
         Screen('Flip', ptb.window);
         KbWait();
-        WaitSecs(1);
+        WaitSecs(0.5);
     end
 end
 
