@@ -1,4 +1,4 @@
-function [horizontalOffset, verticalOffset] = alignFusion(ptb, get)
+function [participantInfo] = alignFusion(ptb, participantInfo)
     % alignFusion: Find the disparity that creates fusion in the subject
     %   Draw a frame with text on both sides of the screen
     %   The subject can move the frame in any direction until it is fused
@@ -9,9 +9,9 @@ function [horizontalOffset, verticalOffset] = alignFusion(ptb, get)
     ListenChar(2);
     
     % Check if horizontalOffset and verticalOffset are present in get
-    if isfield(get, 'horizontalOffset') && isfield(get, 'verticalOffset')
-        horizontalOffset = get.horizontalOffset;
-        verticalOffset = get.verticalOffset;
+    if isfield(participantInfo, 'horizontalOffset') && isfield(participantInfo, 'verticalOffset')
+        horizontalOffset = participantInfo.horizontalOffset;
+        verticalOffset = participantInfo.verticalOffset;
     else
         horizontalOffset = 0;
         verticalOffset = 0;
@@ -19,6 +19,7 @@ function [horizontalOffset, verticalOffset] = alignFusion(ptb, get)
 
     change = 0.003;
     framesize = max([ptb.screenXpixels, ptb.screenYpixels])/3; 
+
 
     % variable that if true calls SetStereoSideBySideParameters
     updateStereo = false;
@@ -51,7 +52,7 @@ function [horizontalOffset, verticalOffset] = alignFusion(ptb, get)
 
         Screen('Flip', ptb.window);
 
-        [KeyIsDown, ~, keyCode, ~] = KbCheck;%(ptb.Keyboard2);
+        [KeyIsDown, ~, keyCode, ~] = KbCheck;
 
         if KeyIsDown
             if find(keyCode)==ptb.Keys.left
@@ -79,9 +80,9 @@ function [horizontalOffset, verticalOffset] = alignFusion(ptb, get)
             fprintf('x-offset: %100.2f, y-offset:%100.2f \n', horizontalOffset, verticalOffset);
         end
     end
-    
-    get.horizontalOffset = horizontalOffset;
-    get.verticalOffset = verticalOffset;
+
+    participantInfo.horizontalOffset = horizontalOffset;
+    participantInfo.verticalOffset = verticalOffset;
 
     ListenChar(0);
 end
