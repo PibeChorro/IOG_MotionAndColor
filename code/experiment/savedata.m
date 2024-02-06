@@ -26,9 +26,9 @@ function savedata(get,ptb,design)
 
     % filename dependent on task [objects|gratings] and run [1-6]
     if get.trainingData == true
-        fileName = sprintf('sub-%02d_task_IOG_training', get.subjectNumber);
+        fileName = sprintf('sub-%02d_task-IOG_training', get.subjectNumber);
     else
-        fileName = sprintf('sub-%02d_task_IOG_run-%02d',get.subjectNumber,get.runNumber);
+        fileName = sprintf('sub-%02d_task-IOG_run-%02d',get.subjectNumber,get.runNumber);
     end
 
     get.subjectDirectory = sprintf(['..', filesep, '..', filesep, 'sourcedata', filesep, 'sub-%02d'], get.subjectNumber);
