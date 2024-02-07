@@ -4,6 +4,8 @@ library(dplyr)
 library(tidyr)
 library(multcomp)
 library(knitr)
+library(ggplot2)
+library(broom)
 
 # Specify the path to the rawdata folder
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
@@ -36,12 +38,36 @@ for (subject in subjects) {
   }
 }
 
-# Extract relevant data for analysis
-durations <- mergedData$durations
-condition <- mergedData$condition
-percepts <- mergedData$percepts
-onsets <- mergedData$onsets
-keyAdded <- mergedData$keyAdded
+
+# Convert 'percepts' column to a factor with levels 'interocular', 'mixed', 'monocular'
+mergedData$percepts <- factor(mergedData$percepts, levels = c('interocular', 'mixed', 'monocular'))
+
+mergedData$condition <- factor(mergedData$condition, levels = c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
+
+# Filter the data to include only 'interocular' percepts
+interocularData <- subset(mergedData, percepts == 'interocular')
+
+# Count the number of 'interocular' choices for each condition
+interocularCount <- mergedData %>%
+  filter(interocularData) %>%
+  group_by(mergedData$condition) %>%
+  summarize(InterocularCount = n())
 
 
+# Perform one-way ANOVA
+anova_result <- aov(InterocularCount ~ mergedData$condition, data = interocularData)
+
+anova_tidy <- tidy(anova_result)
+
+# Create a bar plot
+ggplot(interocularData, aes(x = Condition, y = InterocularCount, fill = percepts)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Proportion of Interocular Choices Across Conditions",
+       x = "Conditions",
+       y = "Proportion of Interocular Choices") +
+  scale_fill_manual(values = c('interocular' = 'blue', 'mixed' = 'gray', 'monocular' = 'red')) +
+  geom_text(aes(label = paste("p-value =", round(anova_tidy$p.value[1], 3))),
+            x = Inf, y = -Inf, hjust = 1, vjust = 0,
+            size = 4, color = "black") +
+  theme_minimal()
 
