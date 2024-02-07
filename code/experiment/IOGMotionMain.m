@@ -5,13 +5,12 @@ function IOGMotionMain(setUp)
 
 % Setup input for the monitor being used.
 if nargin < 1
-    setUp = 'Sarah Laptop';
+    setUp = 'CIN-experimentroom';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
 % Opening psychtoolbox function ptb.
  ptb = PTBSettingsIOGMotion(setUp);
-
 
 %% DESIGN-RELATED:
 % Different design-related information.
@@ -24,7 +23,7 @@ end
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
 
-design.stimulusPresentationTime = 6 - ptb.ifi/2;
+design.stimulusPresentationTime = 120 - ptb.ifi/2;
 design.ITI                      = 1 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                                % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
@@ -170,6 +169,7 @@ else
     load(fullfile(get.folderName, 'participantInfo.mat'));
 end
 
+
 %% FUSION TEST:
 % Fusion test implementation before the experiment starts (Using the function of the other fusion script that was created).
 try
@@ -195,6 +195,8 @@ while true
         disp('Invalid input. Please enter a valid numeric value for the subject number.');
     end
 end
+
+WaitSecs(0.5);
 
 if mod(get.subjectNumber, 2) == 0 % if subjectNumber is divisible by 2 with 0 remainder (aka number is even)
     ptb.Keys.left = ptb.Keys.monocular;
