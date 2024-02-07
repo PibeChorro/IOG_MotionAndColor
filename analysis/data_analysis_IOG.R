@@ -6,6 +6,8 @@ library(multcomp)
 library(knitr)
 library(ggplot2)
 library(broom)
+library(rcompanion)
+library(ggpubr)
 
 # Specify the path to the rawdata folder
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
@@ -38,36 +40,67 @@ for (subject in subjects) {
   }
 }
 
+# Filter the data to exclude rows with 'mixed' percepts
+filteredData <- mergedData[mergedData$percepts != 'mixed', ]
 
-# Convert 'percepts' column to a factor with levels 'interocular', 'mixed', 'monocular'
-mergedData$percepts <- factor(mergedData$percepts, levels = c('interocular', 'mixed', 'monocular'))
+# Convert 'percepts' column to a factor with levels 'interocular', 'monocular'
+filteredData$percepts <- factor(filteredData$percepts, levels = c('interocular', 'monocular'))
 
-mergedData$condition <- factor(mergedData$condition, levels = c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
+durations <- filteredData$durations
 
-# Filter the data to include only 'interocular' percepts
-interocularData <- subset(mergedData, percepts == 'interocular')
+condition <- unique(filteredData$condition)
 
-# Count the number of 'interocular' choices for each condition
-interocularCount <- mergedData %>%
-  filter(interocularData) %>%
-  group_by(mergedData$condition) %>%
-  summarize(InterocularCount = n())
+percepts <- unique(filteredData$percepts)
 
+# Aggregate dominance durations by subject, typical color and percept using sum
+# instead of median
+filteredData <- aggregate(durations ~ condition + percepts + subject, 
+                          data = filteredData, 
+                          FUN = sum)
 
-# Perform one-way ANOVA
-anova_result <- aov(InterocularCount ~ mergedData$condition, data = interocularData)
+filteredData_IOG <- filteredData %>%
+  group_by(subject, condition) %>%
+  summarise(proportion_IOG = (
+    sum(durations[percepts == 'interocular']))/(sum(durations[percepts == 'interocular']+
+                                                      durations[percepts == 'monocular'])),
+    .groups = 'drop')
 
-anova_tidy <- tidy(anova_result)
+# ANOVA for comparing duration of interocular percepts across conditions
+anova_interocular <- aov(filteredData$durations ~ filteredData$condition, data = subset(filteredData, percepts == 'interocular'))
+print(anova_interocular)
+
+anova_monocular <- aov(filteredData$duration ~ filteredData$condition, data = subset(filteredData, percepts == 'monocular'))
+print(anova_monocular)
+
+# Post-hoc test for pairwise comparisons
+posthoc_int <- TukeyHSD(anova_interocular)
+print(posthoc_int)
 
 # Create a bar plot
-ggplot(interocularData, aes(x = Condition, y = InterocularCount, fill = percepts)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Proportion of Interocular Choices Across Conditions",
-       x = "Conditions",
-       y = "Proportion of Interocular Choices") +
-  scale_fill_manual(values = c('interocular' = 'blue', 'mixed' = 'gray', 'monocular' = 'red')) +
-  geom_text(aes(label = paste("p-value =", round(anova_tidy$p.value[1], 3))),
-            x = Inf, y = -Inf, hjust = 1, vjust = 0,
-            size = 4, color = "black") +
-  theme_minimal()
+bar_plot_interocular <- ggplot(data = subset(filteredData, percepts == 'interocular'), aes(x = condition, y = durations, fill = condition)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(0, 3))  # Adjust the y-axis range as needed
 
+bar_plot_interocular <- bar_plot_interocular +
+  annotate("text", x = c(1, 2, 3, 4), y = 2.4, label = "*", size = 4, vjust = 0) +
+  geom_segment(aes(x = 1, xend = 2, y = 2.3, yend = 2.3), color = "black") +
+  geom_segment(aes(x = 3, xend = 4, y = 2.3, yend = 2.3), color = "black")
+
+print(bar_plot_interocular)
+
+bar_plot_monocular <- ggplot(data = subset(filteredData, percepts == 'monocular'), aes(x = condition, y = durations, fill = condition)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  labs(x = "Conditions", y = "Proportion of 'Monocular' Percepts") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(0, 5))
+
+# Add significance annotations directly using geom_text
+bar_plot_monocular <- bar_plot_monocular +
+  annotate("text", x = c(1, 2, 3, 4), y = 4.1, label = "*", size = 4, vjust = 0) +
+  geom_segment(aes(x = 1, xend = 2, y = 4.0, yend = 4.0), color = "black") +
+  geom_segment(aes(x = 3, xend = 4, y = 4.0, yend = 4.0), color = "black")
+
+# Print the plot
+print(bar_plot_monocular)
