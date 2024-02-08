@@ -13,7 +13,7 @@ library(ggpubr)
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
 rawdata_path <- file.path(project_dir, "rawdata")
 
-subjects <- c('sub-01', 'sub-03')
+subjects <- c('sub-01', 'sub-02', 'sub-03', 'sub-05', 'sub-06')
 
 # Initialize an empty data frame to store the merged data
 mergedData <- data.frame()
@@ -35,6 +35,12 @@ for (subject in subjects) {
     data <- read.csv(file)
     data$subject = subject
     data$run = run
+    # Switch 'interocular' and 'monocular' percepts for odd subject numbers
+    if (as.numeric(gsub("sub-", "", subject)) %% 2 == 1) {
+      data$percepts <- factor(ifelse(data$percepts == 'interocular', 'monocular', 'interocular'),
+                              levels = c('interocular', 'monocular'))
+    }
+    
     run <- run+1
     mergedData <- rbind(mergedData, data)
   }
