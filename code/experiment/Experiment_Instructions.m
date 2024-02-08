@@ -47,23 +47,23 @@ instructionsArray_1 = {
     Screen('Flip', ptb.window);
     KbWait();
     WaitSecs(0.5);
-end
 
-% FLICKER TEST:
-% Flicker test to make sure luminance for red and green are equal during
-% the experiment
-
-try
-    participantInfo = Flicker_Test_IOG(ptb,design,participantInfo);
-catch flickerTestError
-    sca;
-    close all;
-    rethrow(flickerTestError);
-end
-
-WaitSecs(0.5);
-% save participants info
-save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
+    % FLICKER TEST:
+    % Flicker test to make sure luminance for red and green are equal during
+    % the experiment
+    
+    try
+        participantInfo = Flicker_Test_IOG(ptb,design,participantInfo);
+    catch flickerTestError
+        sca;
+        close all;
+        rethrow(flickerTestError);
+    end
+    
+    WaitSecs(0.5);
+    % save participants info
+    save(fullfile(get.folderName, 'participantInfo.mat'),'participantInfo');
+ end
 
 for inst1 = 2:4
     if get.runNumber == 1
