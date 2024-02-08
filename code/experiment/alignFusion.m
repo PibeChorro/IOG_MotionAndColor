@@ -20,6 +20,8 @@ function [participantInfo] = alignFusion(ptb, participantInfo)
     change = 0.003;
     framesize = max([ptb.screenXpixels, ptb.screenYpixels])/3; 
 
+    SetStereoSideBySideParameters(ptb.window, [0+horizontalOffset, 0+verticalOffset], ...
+        [1, 1], [1-horizontalOffset, 0-verticalOffset], [1, 1]);
 
     % variable that if true calls SetStereoSideBySideParameters
     updateStereo = false;
