@@ -13,7 +13,7 @@ library(ggpubr)
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
 rawdata_path <- file.path(project_dir, "rawdata")
 
-subjects <- c('sub-01', 'sub-02', 'sub-03', 'sub-05', 'sub-06')
+subjects <- c('sub-01', 'sub-02', 'sub-03','sub-04','sub-05', 'sub-06')
 
 # Initialize an empty data frame to store the merged data
 mergedData <- data.frame()
@@ -29,6 +29,7 @@ for (subject in subjects) {
   files <- files[grepl("task-IOG_run", files)]
   # excluded files containing 'conditions' in name
   files <- files[!grepl("conditions", files)]
+  
   # Read and merge CSV files
   run <- 1
   for (file in files) {
@@ -42,6 +43,7 @@ for (subject in subjects) {
     }
     
     run <- run+1
+    
     mergedData <- rbind(mergedData, data)
   }
 }
@@ -71,42 +73,29 @@ filteredData_IOG <- filteredData %>%
                                                       durations[percepts == 'monocular'])),
     .groups = 'drop')
 
-# ANOVA for comparing duration of interocular percepts across conditions
-anova_interocular <- aov(filteredData$durations ~ filteredData$condition, data = subset(filteredData, percepts == 'interocular'))
+# ANOVA test
+anova_interocular <- aov(proportion_IOG ~ condition, data = filteredData_IOG)
 print(anova_interocular)
-
-anova_monocular <- aov(filteredData$duration ~ filteredData$condition, data = subset(filteredData, percepts == 'monocular'))
-print(anova_monocular)
 
 # Post-hoc test for pairwise comparisons
 posthoc_int <- TukeyHSD(anova_interocular)
 print(posthoc_int)
 
-# Create a bar plot
-bar_plot_interocular <- ggplot(data = subset(filteredData, percepts == 'interocular'), aes(x = condition, y = durations, fill = condition)) +
-  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+# Create bar plot of mean proportions of 'Interocular' percepts
+bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
+  geom_bar(stat = "identity", position = "dodge") +
   labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
   theme_minimal() +
-  coord_cartesian(ylim = c(0, 3))  # Adjust the y-axis range as needed
+  coord_cartesian(ylim = c(0, 1))  # Adjust the y-axis range as needed
 
+# Add asterisks and connecting lines for significant differences
 bar_plot_interocular <- bar_plot_interocular +
-  annotate("text", x = c(1, 2, 3, 4), y = 2.4, label = "*", size = 4, vjust = 0) +
-  geom_segment(aes(x = 1, xend = 2, y = 2.3, yend = 2.3), color = "black") +
-  geom_segment(aes(x = 3, xend = 4, y = 2.3, yend = 2.3), color = "black")
-
-print(bar_plot_interocular)
-
-bar_plot_monocular <- ggplot(data = subset(filteredData, percepts == 'monocular'), aes(x = condition, y = durations, fill = condition)) +
-  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
-  labs(x = "Conditions", y = "Proportion of 'Monocular' Percepts") +
-  theme_minimal() +
-  coord_cartesian(ylim = c(0, 5))
-
-# Add significance annotations directly using geom_text
-bar_plot_monocular <- bar_plot_monocular +
-  annotate("text", x = c(1, 2, 3, 4), y = 4.1, label = "*", size = 4, vjust = 0) +
-  geom_segment(aes(x = 1, xend = 2, y = 4.0, yend = 4.0), color = "black") +
-  geom_segment(aes(x = 3, xend = 4, y = 4.0, yend = 4.0), color = "black")
+  annotate("text", x = c(1, 2, 3, 4), y = 0.95, label = "*", size = 4, vjust = 0)
+  # geom_segment(aes(x = 1, xend = 2, y = 0.95, yend = 0.95), color = "black") +
+  # geom_segment(aes(x = 3, xend = 4, y = 0.95, yend = 0.95), color = "black")
 
 # Print the plot
-print(bar_plot_monocular)
+print(bar_plot_interocular)
+
+# Print ANOVA summary
+summary(anova_interocular)
