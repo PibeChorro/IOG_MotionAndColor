@@ -5,7 +5,7 @@ function IOGMotionMain(setUp)
 
 % Setup input for the monitor being used.
 if nargin < 1
-    setUp = 'CIN-experimentroom';
+    setUp = 'CIN-Mac-Setup';
 end
 
 %% OPEN PSYCHTOOLBOX FUNCTION:
@@ -23,7 +23,7 @@ end
 % 3: orientation and motion - no color
 % 4: orientation, color and motion
 
-design.stimulusPresentationTime = 120 - ptb.ifi/2;
+design.stimulusPresentationTime = 6 - ptb.ifi/2;
 design.ITI                      = 1 - ptb.ifi/2;
 design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
 design.stepSize                 = 0.875;                                % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
@@ -88,11 +88,6 @@ design.xVertical(:,:,4) = design.alphaMask2;
 % TODO (VP): make alpha mask values dynamic
 design.alphaMask1(:,1:157) = 1;
 design.alphaMask2(:,158:end) = 1;
-
-%% DEFINE PTB KEYS STRUCT FOR KEYBOARD RESPONSE DATA
-
-ptb.Keys.monocular = ptb.Keys.left;
-ptb.Keys.interocular = ptb.Keys.right;
 
 %% PARTICIPANT INFORMATION
 get = struct;
@@ -199,17 +194,17 @@ end
 WaitSecs(0.5);
 
 if mod(get.subjectNumber, 2) == 0 % if subjectNumber is divisible by 2 with 0 remainder (aka number is even)
-    ptb.Keys.left = ptb.Keys.monocular;
-    ptb.Keys.right = ptb.Keys.interocular;
+    ptb.Keys.monocular = ptb.Keys.left;
+    ptb.Keys.interocular = ptb.Keys.right;
 else % if subjectNumber is not divisible without 0 remainders (aka number is odd)
-    ptb.Keys.right = ptb.Keys.monocular; 
-    ptb.Keys.left = ptb.Keys.interocular;
+    ptb.Keys.monocular = ptb.Keys.right;
+    ptb.Keys.interocular = ptb.Keys.left;
 end
 
 %% INSTRUCTIONS:
 % Experimental instructions with texts (using experimental function from another mat script).
 try
-    Experiment_Instructions(ptb,get,design,participantInfo);
+     Experiment_Instructions(ptb,get,design,participantInfo);
 catch instructionsError
     sca;
     close all;
