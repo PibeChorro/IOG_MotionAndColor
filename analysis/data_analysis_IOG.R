@@ -13,7 +13,7 @@ library(ggpubr)
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
 rawdata_path <- file.path(project_dir, "rawdata")
 
-subjects <- c('sub-01', 'sub-02', 'sub-03','sub-04','sub-05', 'sub-06')
+subjects <- c('sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06')
 
 # Initialize an empty data frame to store the merged data
 mergedData <- data.frame()
@@ -36,14 +36,7 @@ for (subject in subjects) {
     data <- read.csv(file)
     data$subject = subject
     data$run = run
-    # Switch 'interocular' and 'monocular' percepts for odd subject numbers
-    if (as.numeric(gsub("sub-", "", subject)) %% 2 == 1) {
-      data$percepts <- factor(ifelse(data$percepts == 'interocular', 'monocular', 'interocular'),
-                              levels = c('interocular', 'monocular'))
-    }
-    
     run <- run+1
-    
     mergedData <- rbind(mergedData, data)
   }
 }
@@ -89,10 +82,10 @@ bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = p
   coord_cartesian(ylim = c(0, 1))  # Adjust the y-axis range as needed
 
 # Add asterisks and connecting lines for significant differences
-bar_plot_interocular <- bar_plot_interocular +
-  annotate("text", x = c(1, 2, 3, 4), y = 0.95, label = "*", size = 4, vjust = 0)
-  # geom_segment(aes(x = 1, xend = 2, y = 0.95, yend = 0.95), color = "black") +
-  # geom_segment(aes(x = 3, xend = 4, y = 0.95, yend = 0.95), color = "black")
+#bar_plot_interocular <- bar_plot_interocular +
+  #annotate("text", x = c(1, 2, 3, 4), y = 0.95, label = "*", size = 4, vjust = 0) +
+  #geom_segment(aes(x = 1, xend = 2, y = 0.95, yend = 0.95), color = "black") +
+  #geom_segment(aes(x = 3, xend = 4, y = 0.95, yend = 0.95), color = "black")
 
 # Print the plot
 print(bar_plot_interocular)
