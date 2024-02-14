@@ -8,6 +8,7 @@ library(ggplot2)
 library(broom)
 library(rcompanion)
 library(ggpubr)
+library(plotrix)
 
 # Specify the path to the rawdata folder
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
@@ -41,10 +42,11 @@ for (subject in subjects) {
   }
 }
 
-
 ## FOR INTEROCULAR PROPORTION INCLUDING MIXED PERCEPTS IN THE DATA
 
 durations <- mergedData$durations
+
+mergedData$condition <- factor(mergedData$condition, levels = c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
 
 condition <- mergedData$condition
 
@@ -74,10 +76,8 @@ bar_plot_IOG_WM <- ggplot(data = mergedData_IOG, aes(x = condition, y = proporti
   theme_minimal() +
   coord_cartesian(ylim = c(0, 1)) +
   geom_segment(aes(x = 1.3, xend = 1.9, y = 0.92, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 1.3, xend = 1.3, y = 0.91, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 1.9, xend = 1.9, y = 0.91, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 2.3, xend = 2.9, y = 0.92, yend = 0.92), size = 0.5) +
-  geom_text
+  geom_segment(aes(x = 1.3, xend = 1.3, y = 0.91, yend = 0.92), size = 0.5) 
+
 print(bar_plot_IOG_WM)
 
 
@@ -119,7 +119,7 @@ bar_plot_monocular <- ggplot(data = mergedData_MON, aes(x = condition, y = propo
   geom_bar(stat = "identity", position = "dodge") +
   labs(x = "Conditions", y = "Proportion of 'Monocular' Percepts") +
   theme_minimal() +
-  coord_cartesian(ylim = c(0, 1))
+  coord_cartesian(ylim = c(0, 0.4))
 
 print(bar_plot_monocular)
 
