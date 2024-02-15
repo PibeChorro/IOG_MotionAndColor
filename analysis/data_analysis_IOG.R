@@ -9,6 +9,8 @@ library(broom)
 library(rcompanion)
 library(ggpubr)
 library(plotrix)
+library(gridExtra)
+library(dotwhisker)
 
 # Specify the path to the rawdata folder
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
@@ -72,14 +74,67 @@ print(posthoc_IOG_WM)
 
 bar_plot_IOG_WM <- ggplot(data = mergedData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
+ labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
   theme_minimal() +
-  coord_cartesian(ylim = c(0, 1)) +
-  geom_segment(aes(x = 1.3, xend = 1.9, y = 0.92, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 1.3, xend = 1.3, y = 0.91, yend = 0.92), size = 0.5) 
+  coord_cartesian(ylim = c(0, 1))
 
 print(bar_plot_IOG_WM)
 
+## LINEAR REGRESSION TEST FOR PROPORTION OF INTEROCULAR GROUPING -- WITH MIXED
+
+mergedData_IOG$condition_numeric <- ifelse(mergedData_IOG$condition == "NoMotionNoColor", 0,
+                                       ifelse(mergedData_IOG$condition %in% c('NoMotionColor', 'MotionNoColor'), 1, 2))
+
+# Perform linear regression
+lm_test_IOG_WM <- lm(proportion_IOG ~ condition_numeric, data = mergedData_IOG)
+
+summary(lm_test_IOG_WM)
+
+plot(lm_test_IOG_WM)
+
+abline(lm_test_IOG_WM)
+
+# Create a data frame for predictions
+pred_data <- data.frame(
+  condition = factor(c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
+)
+
+# Predict values using the linear regression model
+pred_data$predicted_proportion <- predict(lm_test_IOG, newdata = pred_data)
+
+# Extract coefficients and their confidence intervals
+coef_data <- broom::tidy(lm_test_IOG)
+
+# Plotting coefficients with 95% confidence intervals
+coef_plot <- ggplot(coef_data, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error), width = 0.2) +
+  labs(title = "Coefficients with 95% Confidence Intervals",
+       x = "Condition",
+       y = "Estimate")
+
+print(coef_plot)
+
+# Plotting the actual vs. predicted values with adjusted title position
+actual_vs_predicted_plot <- ggplot(mergedData_IOG, aes(x = condition, y = proportion_IOG)) +
+  geom_point() +
+  geom_line(data = pred_data, aes(y = predicted_proportion), color = "blue") +
+  labs(title = "Actual vs. Predicted Values",
+       x = "Condition",
+       y = "Proportion of 'Interocular' Grouping") +
+  theme(plot.title = element_text(hjust = 0.45))  # Adjust the title position
+
+print(actual_vs_predicted_plot)
+
+# Plotting residuals
+residual_plot <- ggplot(data.frame(lm_test_IOG$residuals), aes(x = seq_along(lm_test_IOG$residuals), y = lm_test_IOG$residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals Plot",
+       x = "Observation",
+       y = "Residual")
+
+grid.arrange(coef_plot, actual_vs_predicted_plot, residual_plot, ncol = 1)
 
 ## FOR PROPORTION MIXED WITHIN DIFFERENT CONDITIONS
 
@@ -96,7 +151,6 @@ print(anova_mixed)
 
 posthoc_mixed <- TukeyHSD(anova_mixed)
 print(posthoc_mixed)
-
 
 ## FOR PROPORTION MONOCULAR WITHIN DIFFERENT CONDITIONS (WITH MIXED)
 
@@ -119,7 +173,7 @@ bar_plot_monocular <- ggplot(data = mergedData_MON, aes(x = condition, y = propo
   geom_bar(stat = "identity", position = "dodge") +
   labs(x = "Conditions", y = "Proportion of 'Monocular' Percepts") +
   theme_minimal() +
-  coord_cartesian(ylim = c(0, 0.4))
+  coord_cartesian(ylim = c(0, 0.7))
 
 print(bar_plot_monocular)
 
@@ -135,7 +189,7 @@ filteredData$percepts <- factor(filteredData$percepts, levels = c('interocular',
 
 durations <- filteredData$durations
 
-condition <- unique(filteredData$condition)
+filteredData$condition <- factor(filteredData$condition, levels = c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
 
 percepts <- unique(filteredData$percepts)
 
@@ -161,26 +215,36 @@ print(anova_interocular)
 posthoc_int <- TukeyHSD(anova_interocular)
 print(posthoc_int)
 
+filteredData_IOG$condition_numeric <- ifelse(filteredData_IOG$condition == "NoMotionNoColor", 0,
+                                           ifelse(filteredData_IOG$condition %in% c('NoMotionColor', 'MotionNoColor'), 1, 2))
+
+lm_test_IOG <- lm(proportion_IOG ~ condition_numeric, data = filteredData_IOG)
+
+summary_lm <- summary(lm_test_IOG)
+
+plot(lm_test_IOG)
+
+abline(lm_test_IOG) # looks mainly like it's normally distributed
+
 # Create bar plot of mean proportions of 'Interocular' percepts
 bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
   theme_minimal() +
-  coord_cartesian(ylim = c(0, 1)) +
-  geom_segment(aes(x = 1.3, xend = 1.9, y = 0.92, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 1.3, xend = 1.3, y = 0.91, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 1.9, xend = 1.9, y = 0.91, yend = 0.92), size = 0.5) +
+  coord_cartesian(ylim = c(0, 1.1)) +
+  geom_segment(aes(x = 1.0, xend = 3.0, y = 1.0, yend = 1.0), size = 0.5) +
+  geom_segment(aes(x = 1.0, xend = 1.0, y = 0.99, yend = 1.0), size = 0.5) +
+  geom_segment(aes(x = 3.0, xend = 3.0, y = 0.99, yend = 1.0), size = 0.5) +
   geom_segment(aes(x = 2.3, xend = 2.9, y = 0.92, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 2.3, xend = 2.3, y = 0.91, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 2.9, xend = 2.9, y = 0.91, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 3.3, xend = 3.9, y = 0.92, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 3.3, xend = 3.3, y = 0.91, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 3.9, xend = 3.9, y = 0.91, yend = 0.92), size = 0.5) +
+  geom_text(aes(x = 2.0, y = 1.0, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 2.50, y = 0.9, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 2.60, y = 0.9, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 2.70, y = 0.9, label = "*"), size = 4, vjust = -1) +
-  geom_text(aes(x = 1.55, y = 0.9, label = "*"), size = 4, vjust = -1) +
-  geom_text(aes(x = 1.65, y = 0.9, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 3.55, y = 0.9, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 3.65, y = 0.9, label = "*"), size = 4, vjust = -1)
 
