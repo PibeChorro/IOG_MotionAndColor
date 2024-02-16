@@ -1,6 +1,4 @@
-# Load packages and directories
 
-# Load necessary libraries
 # Load necessary libraries
 library(readr)
 library(dplyr)
@@ -18,27 +16,19 @@ library(ez)
 library(car)
 
 # Specify the path to the rawdata folder
-
-
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
 rawdata_path <- file.path(project_dir, "rawdata")
 
 
 # Specify the subjects
-
-
 subjects <- c('sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07', 'sub-08', 'sub-09')
 
 
 # Create an empty data frame
-
-
 mergedData <- data.frame()
 
 
 # Loop through all csv files for each subject and merge them into one data frame
-
-
 for (subject in subjects) {
   # Create the path to the subject folder
   subjectFolderPath <- file.path(rawdata_path, subject)
@@ -66,8 +56,11 @@ mergedData <- aggregate(durations ~ condition + percepts + subject,
                         
                         FUN = sum)
 
-mergedData$condition <- factor(mergedData$condition)
+mergedData$condition <- factor(mergedData$condition, levels = c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
 mergedData$subject <- factor(mergedData$subject)
+
+
+
 
 mergedData_mixed <- mergedData %>%
   group_by(subject, condition) %>%
@@ -83,7 +76,13 @@ aov_mixed <- ezANOVA(data = mergedData_mixed,
                      wid = subject)
 print(aov_mixed) # Ask Vincent why this is significant if there are no differences across conditions for mixed percepts
 
+bar_plot_mixed <- ggplot(data = mergedData_mixed, aes(x = condition, y = proportion_mixed, fill = condition)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Conditions", y = "Proportion of 'Mixed' Percepts") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(0, 0.75))
 
+print(bar_plot_mixed)
 
 # Filtering data for proportion interocular without mixed percepts
 
@@ -134,12 +133,10 @@ residuals <- residuals(lm_test_IOG)
 # Shapiro-Wilk test for normality
 shapiro_test <- shapiro.test(residuals)
 
-print(shapiro_test) # Shapiro test's p-value is .3324, meaning residuals of the data do not
+print(shapiro_test) # Shapiro test's p-value is .2056, meaning residuals of the data do not
 # significantly deviate from normal and the model is a good fit for the data
 
-
 summary(lm_test_IOG)
-
 
 hist(residuals)
 
@@ -154,14 +151,13 @@ aov_IOG <- ezANOVA(data = filteredData_IOG,
                    wid = subject)
 print(aov_IOG)
 
-
 ## Post-hoc t-tests
 NMNC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'NoMotionNoColor']
 MNC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'MotionNoColor']
 NMC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'NoMotionColor']
 MC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'MotionColor']
 
-# main tests
+# Main tests
 motion_cue_res <- t.test(x = NMNC, y = MNC, alternative = 'less')  # expectation significant difference
 print(motion_cue_res)
 color_cue_res <- t.test(x = NMNC, y = NMC, alternative = 'less')   # expectation significant difference
@@ -174,10 +170,8 @@ motion_color_vs_color <- t.test(x = NMC, y = MC, alternative = 'less')  # expect
 print(motion_color_vs_color)
 
 # Bar plot of proportion IOG
-
-# Create bar plot of mean proportions of 'Interocular' percepts
 bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
-  geom_bar(stat = "identity", position = "dodge") +
+  geom_bar(stat = "summary", position = "dodge") +
   labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
   theme_minimal() +
   coord_cartesian(ylim = c(0, 1.1)) +
@@ -187,20 +181,15 @@ bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = p
   geom_segment(aes(x = 2.3, xend = 2.9, y = 0.92, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 2.3, xend = 2.3, y = 0.91, yend = 0.92), size = 0.5) +
   geom_segment(aes(x = 2.9, xend = 2.9, y = 0.91, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 3.3, xend = 3.9, y = 0.92, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 3.3, xend = 3.3, y = 0.91, yend = 0.92), size = 0.5) +
-  geom_segment(aes(x = 3.9, xend = 3.9, y = 0.91, yend = 0.92), size = 0.5) +
-  geom_text(aes(x = 2.0, y = 1.0, label = "*"), size = 4, vjust = -1) +
+  geom_segment(aes(x = 2.0, xend = 4.0, y = 0.82, yend = 0.82), size = 0.5) +
+  geom_segment(aes(x = 2.0, xend = 2.0, y = 0.81, yend = 0.82), size = 0.5) +
+  geom_segment(aes(x = 4.0, xend = 4.0, y = 0.81, yend = 0.82), size = 0.5) +
+  geom_text(aes(x = 2.0, y = 0.98, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 2.50, y = 0.9, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 2.60, y = 0.9, label = "*"), size = 4, vjust = -1) +
   geom_text(aes(x = 2.70, y = 0.9, label = "*"), size = 4, vjust = -1) +
-  geom_text(aes(x = 3.55, y = 0.9, label = "*"), size = 4, vjust = -1) +
-  geom_text(aes(x = 3.65, y = 0.9, label = "*"), size = 4, vjust = -1)
+  geom_text(aes(x = 3.0, y = 0.79, label = "*"), size = 4, vjust = -1) +
+  geom_text(aes(x = 3.1, y = 0.79, label = "*"), size = 4, vjust = -1)
 
 # Print the plot
 print(bar_plot_interocular)
-
-
-
-
-
