@@ -1,3 +1,6 @@
+# Load packages and directories
+
+# Load necessary libraries
 # Load necessary libraries
 library(readr)
 library(dplyr)
@@ -11,17 +14,31 @@ library(ggpubr)
 library(plotrix)
 library(gridExtra)
 library(dotwhisker)
+library(ez)
+library(car)
 
 # Specify the path to the rawdata folder
+
+
 project_dir <- file.path('~','Documents','Interocular-grouping-and-motion')
 rawdata_path <- file.path(project_dir, "rawdata")
 
+
+# Specify the subjects
+
+
 subjects <- c('sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07', 'sub-08', 'sub-09')
 
-# Initialize an empty data frame to store the merged data
+
+# Create an empty data frame
+
+
 mergedData <- data.frame()
 
-# Loop through each subject
+
+# Loop through all csv files for each subject and merge them into one data frame
+
+
 for (subject in subjects) {
   # Create the path to the subject folder
   subjectFolderPath <- file.path(rawdata_path, subject)
@@ -44,144 +61,32 @@ for (subject in subjects) {
   }
 }
 
-## FOR INTEROCULAR PROPORTION INCLUDING MIXED PERCEPTS IN THE DATA
-
-durations <- mergedData$durations
-
-mergedData$condition <- factor(mergedData$condition, levels = c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
-
-condition <- mergedData$condition
-
-percepts <- factor(mergedData$percepts, levels = c('interocular', 'monocular', 'mixed'))
-
 mergedData <- aggregate(durations ~ condition + percepts + subject,
                         data = mergedData,
+                        
                         FUN = sum)
 
-mergedData_IOG <- mergedData %>%
-  group_by(subject, condition) %>%
-  summarise(proportion_IOG = (
-    sum(durations[percepts == 'interocular']))/(sum(durations[percepts == 'interocular']+
-                                                      durations[percepts == 'monocular'] +
-                                                      durations[percepts == 'mixed'])),
-    .groups = 'drop')
-
-anova_interocular_WM <- aov(proportion_IOG ~ condition, data = mergedData_IOG)
-print(anova_interocular_WM)
-
-posthoc_IOG_WM <- TukeyHSD(anova_interocular_WM)
-print(posthoc_IOG_WM)
-
-bar_plot_IOG_WM <- ggplot(data = mergedData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
-  geom_bar(stat = "identity", position = "dodge") +
- labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
-  theme_minimal() +
-  coord_cartesian(ylim = c(0, 1))
-
-print(bar_plot_IOG_WM)
-
-## LINEAR REGRESSION TEST FOR PROPORTION OF INTEROCULAR GROUPING -- WITH MIXED
-
-mergedData_IOG$condition_numeric <- ifelse(mergedData_IOG$condition == "NoMotionNoColor", 0,
-                                       ifelse(mergedData_IOG$condition %in% c('NoMotionColor', 'MotionNoColor'), 1, 2))
-
-# Perform linear regression
-lm_test_IOG_WM <- lm(proportion_IOG ~ condition_numeric, data = mergedData_IOG)
-
-summary(lm_test_IOG_WM)
-
-plot(lm_test_IOG_WM)
-
-abline(lm_test_IOG_WM)
-
-# Create a data frame for predictions
-pred_data <- data.frame(
-  condition = factor(c('NoMotionNoColor', 'MotionNoColor', 'NoMotionColor', 'MotionColor'))
-)
-
-# Predict values using the linear regression model
-pred_data$predicted_proportion <- predict(lm_test_IOG, newdata = pred_data)
-
-# Extract coefficients and their confidence intervals
-coef_data <- broom::tidy(lm_test_IOG)
-
-# Plotting coefficients with 95% confidence intervals
-coef_plot <- ggplot(coef_data, aes(x = term, y = estimate)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error), width = 0.2) +
-  labs(title = "Coefficients with 95% Confidence Intervals",
-       x = "Condition",
-       y = "Estimate")
-
-print(coef_plot)
-
-# Plotting the actual vs. predicted values with adjusted title position
-actual_vs_predicted_plot <- ggplot(mergedData_IOG, aes(x = condition, y = proportion_IOG)) +
-  geom_point() +
-  geom_line(data = pred_data, aes(y = predicted_proportion), color = "blue") +
-  labs(title = "Actual vs. Predicted Values",
-       x = "Condition",
-       y = "Proportion of 'Interocular' Grouping") +
-  theme(plot.title = element_text(hjust = 0.45))  # Adjust the title position
-
-print(actual_vs_predicted_plot)
-
-# Plotting residuals
-residual_plot <- ggplot(data.frame(lm_test_IOG$residuals), aes(x = seq_along(lm_test_IOG$residuals), y = lm_test_IOG$residuals)) +
-  geom_point() +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
-  labs(title = "Residuals Plot",
-       x = "Observation",
-       y = "Residual")
-
-grid.arrange(coef_plot, actual_vs_predicted_plot, residual_plot, ncol = 1)
-
-## FOR PROPORTION MIXED WITHIN DIFFERENT CONDITIONS
+mergedData$condition <- factor(mergedData$condition)
+mergedData$subject <- factor(mergedData$subject)
 
 mergedData_mixed <- mergedData %>%
   group_by(subject, condition) %>%
   summarise(proportion_mixed = (
     sum(durations[percepts == 'mixed']))/(sum(durations[percepts == 'interocular']+
-                                                      durations[percepts == 'monocular'] +
-                                                      durations[percepts == 'mixed'])),
+                                                durations[percepts == 'monocular'] +
+                                                durations[percepts == 'mixed'])),
     .groups = 'drop')
 
-anova_mixed <- aov(proportion_mixed ~ condition, data = mergedData_mixed)
-print(anova_mixed)
-
-posthoc_mixed <- TukeyHSD(anova_mixed)
-print(posthoc_mixed)
-
-## FOR PROPORTION MONOCULAR WITHIN DIFFERENT CONDITIONS (WITH MIXED)
-
-mergedData_MON <- mergedData %>%
-  group_by(subject, condition) %>%
-  summarise(proportion_monocular = (
-    sum(durations[percepts == 'monocular']))/(sum(durations[percepts == 'interocular'] +
-                                                    durations[percepts == 'monocular'] +
-                                                    durations[percepts == 'mixed'])),
-    .groups = 'drop')
+aov_mixed <- ezANOVA(data = mergedData_mixed,
+                     dv = proportion_mixed,
+                     within = condition,
+                     wid = subject)
+print(aov_mixed) # Ask Vincent why this is significant if there are no differences across conditions for mixed percepts
 
 
-anova_monocular <- aov(proportion_monocular ~ condition, data = mergedData_MON)
-print(anova_monocular)
 
-posthoc_monocular <- TukeyHSD(anova_monocular)
-print(posthoc_monocular)
+# Filtering data for proportion interocular without mixed percepts
 
-bar_plot_monocular <- ggplot(data = mergedData_MON, aes(x = condition, y = proportion_monocular, fill = condition)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Conditions", y = "Proportion of 'Monocular' Percepts") +
-  theme_minimal() +
-  coord_cartesian(ylim = c(0, 0.7))
-
-print(bar_plot_monocular)
-
-
-## FOR PROPORTION INTEROCULAR WITHOUT MIXED PERCEPTS
-
-
-# Filter the data to exclude rows with 'mixed' percepts
 filteredData <- mergedData[mergedData$percepts != 'mixed', ]
 
 # Convert 'percepts' column to a factor with levels 'interocular', 'monocular'
@@ -197,34 +102,78 @@ percepts <- unique(filteredData$percepts)
 # instead of median
 
 filteredData <- aggregate(durations ~ condition + percepts + subject,
-                         data = filteredData,
-
-                       FUN = sum)
+                          data = filteredData,
+                          
+                          FUN = sum)
 filteredData_IOG <- filteredData %>%
-group_by(subject, condition) %>%
-summarise(proportion_IOG = (
-sum(durations[percepts == 'interocular']))/(sum(durations[percepts == 'interocular']+
-                                                durations[percepts == 'monocular'])),
-.groups = 'drop')
+  group_by(subject, condition) %>%
+  summarise(proportion_IOG = (
+    sum(durations[percepts == 'interocular']))/(sum(durations[percepts == 'interocular']+
+                                                      durations[percepts == 'monocular'])),
+    .groups = 'drop')
 
-# ANOVA test
-anova_interocular <- aov(proportion_IOG ~ condition, data = filteredData_IOG)
-print(anova_interocular)
 
-# Post-hoc test for pairwise comparisons
-posthoc_int <- TukeyHSD(anova_interocular)
-print(posthoc_int)
+# Bar plot for Proportion IOG without mixed
+bar_plot_IOG <- ggplot(data = filteredData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Conditions", y = "Proportion of 'Interocular' Percepts") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(0, 1))
 
+print(bar_plot_IOG)
+
+# Linear regression test
 filteredData_IOG$condition_numeric <- ifelse(filteredData_IOG$condition == "NoMotionNoColor", 0,
-                                           ifelse(filteredData_IOG$condition %in% c('NoMotionColor', 'MotionNoColor'), 1, 2))
+                                             ifelse(filteredData_IOG$condition %in% c('NoMotionColor', 'MotionNoColor'), 1, 2))
 
+# Perform linear regression
 lm_test_IOG <- lm(proportion_IOG ~ condition_numeric, data = filteredData_IOG)
 
-summary_lm <- summary(lm_test_IOG)
+residuals <- residuals(lm_test_IOG)
 
-plot(lm_test_IOG)
+# Shapiro-Wilk test for normality
+shapiro_test <- shapiro.test(residuals)
 
-abline(lm_test_IOG) # looks mainly like it's normally distributed
+print(shapiro_test) # Shapiro test's p-value is .3324, meaning residuals of the data do not
+# significantly deviate from normal and the model is a good fit for the data
+
+
+summary(lm_test_IOG)
+
+
+hist(residuals)
+
+qq1 <- qqPlot(residuals)
+
+filteredData_IOG$subject <- factor(filteredData_IOG$subject)
+
+# ANOVA test
+aov_IOG <- ezANOVA(data = filteredData_IOG,
+                   dv = proportion_IOG,
+                   within = condition,
+                   wid = subject)
+print(aov_IOG)
+
+
+## Post-hoc t-tests
+NMNC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'NoMotionNoColor']
+MNC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'MotionNoColor']
+NMC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'NoMotionColor']
+MC <- filteredData_IOG$proportion_IOG[filteredData_IOG$condition == 'MotionColor']
+
+# main tests
+motion_cue_res <- t.test(x = NMNC, y = MNC, alternative = 'less')  # expectation significant difference
+print(motion_cue_res)
+color_cue_res <- t.test(x = NMNC, y = NMC, alternative = 'less')   # expectation significant difference
+print(color_cue_res)
+motion_vs_color <- t.test(x = MNC, y = NMC, alternative = 'two.sided') # expectation NO significant difference
+print(motion_vs_color)
+motion_color_vs_motion <- t.test(x = MNC, y = MC, alternative = 'less')  # expectation significant difference
+print(motion_color_vs_motion)
+motion_color_vs_color <- t.test(x = NMC, y = MC, alternative = 'less')  # expectation significant difference
+print(motion_color_vs_color)
+
+# Bar plot of proportion IOG
 
 # Create bar plot of mean proportions of 'Interocular' percepts
 bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = proportion_IOG, fill = condition)) +
@@ -251,5 +200,7 @@ bar_plot_interocular <- ggplot(data = filteredData_IOG, aes(x = condition, y = p
 # Print the plot
 print(bar_plot_interocular)
 
-# Print ANOVA summary
-summary(anova_interocular)
+
+
+
+
