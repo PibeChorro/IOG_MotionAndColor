@@ -1,4 +1,4 @@
-function Experiment_Instructions(ptb,get,design,participantInfo)
+function [participantInfo] = Experiment_Instructions(ptb,get,design,participantInfo)
 if mod(get.subjectNumber,2) == 0
     monocular = 'left';
     interocular = 'right';
