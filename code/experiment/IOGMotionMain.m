@@ -25,9 +25,9 @@ ptb = PTBSettingsIOGMotion(setUp);
 
 design.stimulusPresentationTime = 6 - ptb.ifi/2;
 design.ITI                      = 1 - ptb.ifi/2;
-design.contrast                 = 0.33;                                     % decreasing the contrast between rivaling stimuli prolonges the dominance time
-design.stepSize                 = 0.875;                                    % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
-design.scalingFactor            = 0.1;
+design.contrast                 = 0.33;                                     
+design.degPerSec                = 1;                                        % Velocity with which in the motion condition the gratings are moving
+design.cyclesPerDegree          = 2;                                        % How many sine wave cycles we have per visual degree
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
 design.mondreanInDegrees        = 5;
@@ -68,10 +68,10 @@ design.fixCrossCoords = [
     ];
 
 %% REPETITION MATRIX FOR MOTION SIMULATION
-% TODO (VP): change limit of array from arbitrary 314 to a well thought
-% through value
-
-[design.xVertical, design.xHorizontal] = meshgrid(1:314);
+start   = 0;
+steps   = design.stimSizeInPixelsX;
+fin     = pi * 2 * design.cyclesPerDegree * design.stimSizeInPixelsX;
+[design.xVertical, design.xHorizontal] = meshgrid(linspace(start,fin,steps));
 
 design.alphaMask1 = zeros(size(design.xHorizontal));
 design.alphaMask2 = design.alphaMask1;
@@ -84,10 +84,13 @@ design.xVertical(:,:,2) = design.xVertical(:,:,1);
 design.xVertical(:,:,3) = design.xVertical(:,:,1);
 design.xVertical(:,:,4) = design.alphaMask2;
 
+%% MOTION STEP SIZE:
+% TODO: explain logic here
+design.stepSize = (ptb.PixPerDegWidth/design.stimSizeInPixelsX/ptb.numFrames) * design.degPerSec *2 * pi; 
+
 %% ALPHA MASKS
-% TODO (VP): make alpha mask values dynamic
-design.alphaMask1(:,1:157)      = 1;
-design.alphaMask2(:,158:end)    = 1;
+design.alphaMask1(:,1:round(design.stimSizeInPixelsX/2))    = 1;
+design.alphaMask2(:,design.stimSizeInPixelsX/2+1:end)       = 1;
 
 %% PARTICIPANT INFORMATION
 get = struct;
@@ -250,21 +253,21 @@ KbQueueStart(ptb.Keyboard2);
 try
     for trial = 1:length(get.data.Orientation1)
         if any(strcmp(data.Motion1(trial), 'Upward'))
-            Motion1 = 1;
+            Motion1 = 1 * design.stepSize;
 
             if any(strcmp(data.Motion2(trial), 'Rightward'))
-                Motion2 = -1;
+                Motion2 = -1 * design.stepSize;
             elseif any(strcmp(data.Motion2(trial), 'Leftward'))
-                Motion2 = 1;
+                Motion2 = 1 * design.stepSize;
             end
 
         elseif any(strcmp(data.Motion1(trial), 'Downward'))
-            Motion1 = -1;
+            Motion1 = -1 * design.stepSize;
 
             if any(strcmp(data.Motion2(trial), 'Rightward'))
-                Motion2 = -1;
+                Motion2 = -1 * design.stepSize;
             elseif any(strcmp(data.Motion2(trial), 'Leftward'))
-                Motion2 = 1;
+                Motion2 = 1 * design.stepSize;
             end
 
         elseif any(strcmp(data.Motion1(trial), 'No Motion'))
@@ -320,12 +323,12 @@ try
         % updating the x arrays
         while vbl - get.data.trialOnset(trial) < design.stimulusPresentationTime
 
-            design.xHorizontal = design.xHorizontal + Motion1 * design.stepSize;
-            design.xVertical = design.xVertical + Motion2 * design.stepSize;
+            design.xHorizontal = design.xHorizontal + Motion1;
+            design.xVertical = design.xVertical + Motion2;
 
             % TODO (VP): set factor for sinus wave as a variable
-            horizontalGrating   = sin(design.xHorizontal*design.scalingFactor); % creates a sine-wave grating of spatial frequency 0.1 (CPM oder CPD?)
-            verticalGrating     = sin(design.xVertical*design.scalingFactor);
+            horizontalGrating   = sin(design.xHorizontal); % creates a sine-wave grating of spatial frequency 0.1 (CPM oder CPD?)
+            verticalGrating     = sin(design.xVertical);
 
             leftScaledHorizontalGrating = ((horizontalGrating+1)/2);% * design.contrast; % normalizes value range from 0 to 1 instead of -1 to 1
             leftScaledVerticalGrating   = ((verticalGrating+1)/2);% * design.contrast;
