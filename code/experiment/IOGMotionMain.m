@@ -25,8 +25,8 @@ end
 
 design.stimulusPresentationTime = 6 - ptb.ifi/2;
 design.ITI                      = 1 - ptb.ifi/2;
-design.contrast                 = 0.33;                                % decreasing the contrast between rivaling stimuli prolonges the dominance time
-design.stepSize                 = 0.875;                                % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
+design.contrast                 = 0.33;                                     % decreasing the contrast between rivaling stimuli prolonges the dominance time
+design.stepSize                 = 0.875;                                    % Original: 0.25, but to make in visual degrees we go up to 0.875. Step size for motion trials to reduce/increase velocity. (PixPerDeg/FramesPerSecond)*PixPerFrame
 design.scalingFactor            = 0.1;
 design.stimSizeInDegrees        = 1.7;
 design.fixCrossInDegrees        = 0.25;
@@ -86,8 +86,8 @@ design.xVertical(:,:,4) = design.alphaMask2;
 
 %% ALPHA MASKS
 % TODO (VP): make alpha mask values dynamic
-design.alphaMask1(:,1:157) = 1;
-design.alphaMask2(:,158:end) = 1;
+design.alphaMask1(:,1:157)      = 1;
+design.alphaMask2(:,158:end)    = 1;
 
 %% PARTICIPANT INFORMATION
 get = struct;
@@ -248,7 +248,7 @@ end
 % Introducing the different conditions of the experiment along with assigned variables
 % Create 4D matrices for horizontal and vertical gratings
 try
-    for trial = 1:4
+    for trial = 1:length(get.data.Orientation1)
         if any(strcmp(data.Motion1(trial), 'Upward'))
             Motion1 = 1;
     
@@ -316,7 +316,7 @@ try
     Screen('DrawLines', ptb.window, design.fixCrossCoords, ...
         ptb.lineWidthInPix, ptb.white, [ptb.xCenter ptb.yCenter]);
     Screen('DrawingFinished', ptb.window);
-    Screen('Flip', ptb.window);
+        vbl = Screen('Flip', ptb.window);
     WaitSecs(2);
 
         % get timing of trial onset
@@ -337,8 +337,8 @@ try
             leftScaledHorizontalGrating(:,:,turnoffIndicesHorizontal) = 0;
             leftScaledVerticalGrating(:,:,turnoffIndicesVertical) = 0;
     
-            rightScaledHorizontalGrating = leftScaledHorizontalGrating;
-            rightScaledVerticalGrating = leftScaledVerticalGrating;
+            rightScaledHorizontalGrating    = leftScaledHorizontalGrating;
+            rightScaledVerticalGrating      = leftScaledVerticalGrating;
         
             leftScaledHorizontalGrating(:,:,4)  = design.alphaMask1;
             leftScaledVerticalGrating(:,:,4) = design.alphaMask2;

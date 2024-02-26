@@ -10,8 +10,8 @@ function [participantInfo] = Flicker_Test_IOG(ptb, design,participantInfo)
 %   used in this experiment. The RGB-values are used in the flicker task to
 %   get subjectively equiluminant colors
 
-participantInfo.equiluminantRed = [0.76 0 0];       % values that were equiluminant for VP
-participantInfo.equiluminantGreen = [0 0.5 0];      % values that were equiluminant for VP
+participantInfo.equiluminantRed = [0.76 0 0];                               % values that were equiluminant for VP
+participantInfo.equiluminantGreen = [0 0.5 0];                              % values that were equiluminant for VP
 
 %% design related stuff
 % the color pairs that need to be made equiluminant
