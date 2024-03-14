@@ -88,9 +88,7 @@ for inst1 = 2:length(instructionsArray_1)
 end
 
 if get.runNumber == 1
-    [xVertical, xHorizontal] = meshgrid(1:314);
-
-    alphaMaskPieceMeal1 = zeros(size(xHorizontal));
+    alphaMaskPieceMeal1 = zeros(size(design.xHorizontal(:,:,1)));
     halfColumns = round(size(alphaMaskPieceMeal1, 2) / 2);
 
     % Right half: horizontal in the upper part, vertical in the lower part
@@ -118,17 +116,23 @@ if get.runNumber == 1
 
     alphaMaskPieceMeal2 = ~alphaMaskPieceMeal1;
 
-    xHorizontal(:,:,2) = xHorizontal(:,:,1);
-    xHorizontal(:,:,3) = xHorizontal(:,:,1);
+    horizontalGrating = sin(design.xHorizontal);
+    ScaledHorizontalGrating = ((horizontalGrating+1)/2);
 
-    xVertical(:,:,2) = xVertical(:,:,1);
-    xVertical(:,:,3) = xVertical(:,:,1);
+    verticalGrating1 = sin(design.xVertical);
+    ScaledVerticalGrating = ((verticalGrating1+1)/2);
 
-    horizontalGrating = sin(xHorizontal*design.scalingFactor);
-    ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
+    % shape grating into 2D, multiply with equiluminant color and
+    % reshape
+    [nx,ny,nz] = size(ScaledVerticalGrating);
+    horTmp = reshape(ScaledVerticalGrating, nx*ny,nz);
+    horTmp(:,1:3) = horTmp(:,1:3).*participantInfo.equiluminantGreen;
+    ScaledVerticalGrating = reshape(horTmp,nx,ny,nz);
 
-    verticalGrating1 = sin(xVertical*design.scalingFactor);
-    ScaledVerticalGrating = ((verticalGrating1+1)/2) * design.contrast;
+    [nx,ny,nz] = size(ScaledHorizontalGrating);
+    horTmp = reshape(ScaledHorizontalGrating, nx*ny,nz);
+    horTmp(:,1:3) = horTmp(:,1:3).*participantInfo.equiluminantRed;
+    ScaledHorizontalGrating = reshape(horTmp,nx,ny,nz);
 
     %% CREATION OF STIMULI AND CLOSING SCREENS
     % Creation of experimental stimuli with different features (textures, colors…)
@@ -193,11 +197,11 @@ if get.runNumber == 1
 
     DrawFormattedText(ptb.window,textMonocular, 'center', textYMonocular, textColor);
 
-    horizontalGrating = sin(xHorizontal*design.scalingFactor);
-    ScaledHorizontalGrating = ((horizontalGrating+1)/2) * design.contrast;
+    horizontalGrating = sin(design.xHorizontal);
+    ScaledHorizontalGrating = ((horizontalGrating+1)/2);
 
-    verticalGrating1 = sin(xVertical*design.scalingFactor);
-    ScaledVerticalGrating = ((verticalGrating1+1)/2) * design.contrast;
+    verticalGrating1 = sin(design.xVertical);
+    ScaledVerticalGrating = ((verticalGrating1+1)/2);
 
     % Select left image buffer for true color image:
     Screen('SelectStereoDrawBuffer', ptb.window, 1);
